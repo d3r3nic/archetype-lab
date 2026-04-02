@@ -107,27 +107,6 @@ The framework doesn't just enforce rules - it creates the right project foundati
 
 The framework project itself needs to be developed using AI. So the framework needs to guide its own development. This is the meta-level: the planning folder is the source code, the dist folder is the build output. The framework is a product being built, and the product is a tool for building products.
 
-## Key Decisions Made
-
-1. CLAUDE.md is 10-15 lines MAX. Enforcer only. Zero context.
-2. Conventions are framework-agnostic. They describe WHAT and WHY, never HOW.
-3. References.md is the only per-project file. Same name, different content.
-4. Convention docs account for AI-era shifts in why conventions matter.
-5. The framework should bootstrap new projects, not just enforce existing ones.
-6. No implementation techniques in convention docs - those change with frameworks.
-7. Deep documentation is generated as projects evolve, not upfront.
-
-## What We Have NOT Decided Yet
-
-1. The complete list of conventions (we know reusability, theming, config-driven, boundaries - but the full catalog needs to be defined)
-2. The exact format/template for convention docs
-3. The exact format of the CLAUDE.md enforcer (we know it's lean but haven't written it)
-4. The exact format of References.md template
-5. How conventions interact with each other (dependencies, priorities)
-6. Whether there should be backend/frontend/mobile variants of conventions or if they're truly universal
-7. How to handle conventions that conflict with AI system prompts (e.g., reusability-first vs "don't design for hypothetical futures")
-8. Version strategy - how to track changes to conventions over time
-
 ### Step 10: The Meta-Convention
 
 The user identified that reusability isn't convention #6 sitting alongside 32 others. It's convention #0 - the meta-convention that governs HOW every other convention gets implemented.
@@ -150,28 +129,51 @@ Applied merges to reduce 33 conventions to 25 (1 meta + 22 core + 2 optional):
 
 Cross-referenced every convention against all 4 sources. Duplicates resolved. Best source identified per convention.
 
-## Key Decisions Made
+### Step 12: Audit and Deviation Fixes
 
-1. CLAUDE.md is 10-15 lines MAX. Enforcer only. Zero context.
-2. Conventions are framework-agnostic. They describe WHAT and WHY, never HOW.
-3. References.md is the only per-project file. Same name, different content.
+Audited the built product against the plan. Found deviations:
+- CLAUDE.md evolved from "behavioral rules" to "direct enforcement rules with redirects" (intentional - user requested)
+- Convention docs had framework-specific examples without labels (fixed: labeled as illustrative, added multi-framework examples)
+- Architecture doc was stale (fixed: full rewrite reflecting 4-phase model, feature tree, hooks, routing table concept)
+- References.md was described as "only per-project file" but feature-tree.md and docs/ are also per-project (fixed: architecture now lists all per-project artifacts as Layer 4)
+- Behavioral rules had no home (fixed: created global-claude.md template for ~/.claude/CLAUDE.md)
+- Phase 3 (Develop) and Phase 4 (Maintain) had no documents (fixed: DEVELOP.md and MAINTAIN.md created)
+- Plan had duplicate sections (fixed: cleaned up)
+- Missing templates: feature doc template (fixed: created feature-doc-template.md)
+
+## Key Decisions (Final)
+
+1. CLAUDE.md is a lean routing table. ~13 direct enforcement rules with redirects. Universal across frameworks.
+2. Conventions are framework-agnostic. Examples may use specific frameworks but are labeled as illustrative.
+3. References.md is the primary per-project file. feature-tree.md and docs/ are also per-project (Layer 4).
 4. Convention docs account for AI-era shifts in why conventions matter.
-5. The framework should bootstrap new projects, not just enforce existing ones.
-6. No implementation techniques in convention docs - those change with frameworks.
-7. Deep documentation is generated as projects evolve, not upfront.
+5. The framework bootstraps new projects AND onboards existing ones.
+6. Convention examples show multiple frameworks where helpful for clarity.
+7. Documentation flows alongside code at every phase, not as an afterthought.
 8. Reusability is the meta-convention (#0) that governs all others.
 9. Every convention produces a reusable foundational system at project creation.
 10. Bootstrap = applying #0 to each convention for the chosen framework.
+11. CLAUDE.md has direct enforcement rules. Behavioral rules go in global ~/.claude/CLAUDE.md.
+12. Feature tree is a living map maintained by hooks, audited periodically.
+13. The product (dist/) is a separate repo from the factory (planning/, research/).
 
-## What We Have NOT Decided Yet
+## Resolved Items
 
-1. The exact template for convention docs (fields, structure)
-2. The exact format of the CLAUDE.md enforcer
-3. The exact format of References.md template
-4. How conventions interact with each other (dependencies, priorities)
-5. How to handle conventions that conflict with AI system prompts
-6. Version strategy for convention evolution
+Previously undecided, now resolved:
+- Convention doc template: DECIDED (convention-template.md created)
+- CLAUDE.md enforcer format: DECIDED (direct rules with convention redirects)
+- References.md template: DECIDED (frontend + backend templates created)
+- Backend/frontend variants: DECIDED (conventions universal, References.md is framework-specific)
+- System prompt conflicts: DECIDED (#0 explicitly notes it overrides "don't design for hypothetical futures")
+- Convention dependencies: PARTIALLY (scaffold order in SCAFFOLD.md implies dependencies)
 
-## Next Step
+## Still Open
 
-Define the convention doc template. What fields must each convention doc have? This determines the structure before any content is written.
+- Version strategy for conventions (no versioning system yet)
+- Convention dependency graph (implicit in scaffold order but not documented separately)
+- Optional addon docs (i18n, observability) not yet written
+
+## Current Status
+
+Product (archetype repo) is complete with all 4 phases documented.
+Next: test by applying to a real project.
