@@ -167,13 +167,114 @@ Previously undecided, now resolved:
 - System prompt conflicts: DECIDED (#0 explicitly notes it overrides "don't design for hypothetical futures")
 - Convention dependencies: PARTIALLY (scaffold order in SCAFFOLD.md implies dependencies)
 
+### Step 13: Real-world testing and the discovery flow
+
+After Step 12 (audit fixes), tested the framework end-to-end with a vibe coder simulation. Found that the bootstrap jumped straight to picking a tech stack, which doesn't work for non-developers who don't know what to choose.
+
+Added a discovery interview phase (5 question groups) that asks plain-English questions a non-developer can answer:
+- What is it? (describe to a friend)
+- Where does it run? (browser, phone, desktop)
+- What do users do? (login, forms, uploads, real-time, offline)
+- Scale and stage (personal, MVP, enterprise)
+- Infrastructure and sensitivity (managed vs self-managed, sensitive data)
+
+The AI reads the user's experience level from how they talk and adjusts:
+- Non-technical -> Supabase + Vercel (managed services, zero DevOps)
+- Developer -> managed cloud platforms with simple deployment
+- Experienced -> AWS preferred, full control
+- Enterprise/compliance -> AWS with encryption, audit trails
+
+Tested with bakery owner ("I want something for my small bakery") and HR tool ("Windows office, Microsoft stuff, sensitive employee data"). Both scenarios produced correct tech stack decisions (Supabase + Vercel for bakery, ASP.NET Core + Blazor + Entra ID for HR tool).
+
+### Step 14: Production-grade theme + established UI library
+
+Real-world test on todo app showed scaffolding agent built buttons from scratch with raw Tailwind classes and skipped dark mode. Updated convention #6 (Styling) and #22 (Design System) to require:
+- Dark mode is ALWAYS required, not optional
+- Use established UI library (MUI, Chakra, Radix, etc.) - do not reinvent wheels
+- Configure library theme with light AND dark from day one
+- Wrap library components, features import from wrappers
+
+Added CLAUDE.md rule: "Never build standard UI components from scratch. Use the established UI library, configured and wrapped."
+
+### Step 15: Inject script for existing projects
+
+Added inject.sh to the framework root. Copies framework files into a target project as a subfolder (default: archetype/) without modifying any existing files. Designed for migrating existing projects.
+
+```
+./inject.sh /path/to/existing-project
+./inject.sh /path/to/existing-project custom-subfolder-name
+```
+
+This is the safe migration path. The framework lands in a sibling folder, then the existing-project bootstrap runs from there.
+
+### Step 16: Rule extraction phase for existing projects
+
+Tested the existing-project bootstrap on Development3/frontend-dashboard (1047-line CLAUDE.md). The bootstrap captured tech stack and feature tree but LOST 32 items including 7 critical workflow protocols (Feature Audit Protocol, Breaking Change Protocol, Technical Debt Tracking, Critical Workflow, Factory Decision Tree, Widget Pattern, Non-Breaking Fixes catalog).
+
+Added Part B "Rule Extraction" to the existing-project bootstrap. Required outputs:
+- conventions/overrides/{N}-{name}.md - per-convention project rules (full text, not summaries)
+- protocols/{name}.md - workflow protocols
+- catalogs/{name}.md - reference materials
+- CLAUDE.md.additions - extra enforcement rules
+- INDEX.md - master map
+
+CRITICAL rule: do not summarize. Extract in full. If the original has 200 lines on a protocol, the extracted file has 200 lines.
+
+Re-ran on frontend project. 30 files extracted. Verified line-by-line walkthrough of original Claude.md - every section now has a destination.
+
+### Step 17: Cross-referencing extracted files
+
+After extraction, the new files existed but nothing referenced them. A new AI reading the framework wouldn't find them.
+
+Added Part C "Cross-reference everything":
+- CLAUDE.md (the enforcer) lists conventions/overrides/, protocols/, catalogs/, INDEX.md
+- References.md template has "Project-Specific Documentation" section listing extracted files
+- Convention doc template references conventions/overrides/{N}-{name}.md if it exists
+- INDEX.md is the master map
+
+A new AI reaches any extracted file in 2 hops max: CLAUDE.md -> References.md/INDEX.md -> target file.
+
+### Step 18: Documentation discovery + migration + audit (Part D)
+
+The frontend project had a substantial /docs/ folder (12 numbered topic folders + standalone files) that wasn't part of the rule extraction. Added Part D to the existing-project bootstrap:
+
+1. Discover all documentation in the project (not just /docs/) - search 8+ locations including README files in subfolders, /docs1/, /architecture/, /adr/, etc.
+2. Categorize into 5 tiers (architectural, feature, history, stale, generated/temp)
+3. Ask the user when ambiguous - don't guess
+4. COPY (not move, not edit) into archetype/docs/migrated/ preserving structure
+5. Map each migrated doc to a framework convention
+6. Audit each migrated doc against its convention (alignment, violations, staleness, conflicts)
+7. Create archetype/docs/audit/{path}.audit.md with findings
+8. Create archetype/docs/audit/SUMMARY.md with status table
+
+Critical rule: original /docs/ stays untouched. Copies and audits live entirely in archetype/.
+
+## Key Decisions Added
+
+11. The bootstrap interviews the user in plain English instead of asking for tech stack upfront.
+12. The AI reads the user's experience level from the conversation and adjusts infrastructure choices.
+13. Dark mode and an established UI library are non-negotiable in the styling/design conventions.
+14. Existing project bootstrap has 4 parts: scan codebase (A), extract rules (B), cross-reference (C), migrate and audit docs (D).
+15. Rule extraction must preserve the full original text, not summarize.
+16. Documentation discovery searches the entire project, not just /docs/.
+17. When the discovery is ambiguous, the AI asks the user instead of guessing.
+18. All extraction/migration is non-destructive: original files are never modified, only copied.
+
 ## Still Open
 
 - Version strategy for conventions (no versioning system yet)
 - Convention dependency graph (implicit in scaffold order but not documented separately)
 - Optional addon docs (i18n, observability) not yet written
+- Backend project migration (frontend done, backend not yet)
+- Promotion phase: how to safely move archetype/ contents to project root and archive the original CLAUDE.md
+- Scaffolding for existing projects: SCAFFOLD.md is for new projects, no equivalent for migrating an existing project's gaps
 
 ## Current Status
 
-Product (archetype repo) is complete with all 4 phases documented.
-Next: test by applying to a real project.
+Framework is in active production-grade refinement.
+- Tested end-to-end with vibe coder bootstrap (bakery, todo app)
+- Tested with developer-specific stacks (.NET HR tool, Node.js todo)
+- Tested on real existing project (Development3/frontend-dashboard) - extraction working, docs migration in progress
+- Both repos pushed: github.com/d3r3nic/archetype (product), github.com/d3r3nic/archetype-lab (factory)
+- 18+ commits to the product since initial release
+- Next: complete frontend doc audit, then run on backend project
