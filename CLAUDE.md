@@ -34,11 +34,24 @@ You are working ON the framework, not WITH it.
 CLAUDE.md              ← you are here (development rules for this project)
 README.md              ← project overview
 planning/
-  PLAN.md              ← full discussion history, decisions, reasoning
-  ARCHITECTURE.md      ← layer system design
+  PLAN.md              ← full discussion history, decisions, reasoning (Steps 1-21)
+  ARCHITECTURE.md      ← layer system design + project structure after promotion
   ROADMAP.md           ← phases and progress tracking
+  CHANGELOG.md         ← every improvement with date, trigger, and changes
+  CONVENTIONS-CATALOG.md ← the convention catalog with cross-references
 research/
   existing-rulesets/   ← analysis of 5 existing CLAUDE.md files
   industry/            ← external research and system prompt audit
-dist/                  ← the usable framework (clean output)
+dist/                  ← the usable framework (clean output, its own repo)
 ```
+
+## When making changes to the framework
+
+1. Make the change in dist/ (the product)
+2. Document WHY in planning/PLAN.md (append a new step)
+3. Log WHAT changed in planning/CHANGELOG.md (with date, trigger, changes)
+4. Update planning/ROADMAP.md if phases changed
+5. Update planning/ARCHITECTURE.md if the design changed
+6. Commit dist/ to the archetype repo (github.com/d3r3nic/archetype)
+7. Commit planning/ to the lab repo (github.com/d3r3nic/archetype-lab)
+8. Sync to deployed projects (MobileMed frontend, game-test, others)

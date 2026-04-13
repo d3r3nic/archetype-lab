@@ -199,6 +199,51 @@ NEW (AI-era only):
 - Incremental changes (AI can't self-correct across large batches)
 - Context management (keeping things scopeable for AI)
 
+## Project Structure After Bootstrap + Promotion
+
+After bootstrap and promotion, a project using the framework looks like this:
+
+```
+project/
+├── CLAUDE.md              ← at root (auto-loaded by Claude Code)
+├── References.md           ← at root (project context)
+├── feature-tree.md         ← at root (living project map)
+├── conventions/            ← promoted from archetype/ (read during development)
+├── protocols/              ← promoted (project-specific workflows)
+├── catalogs/               ← promoted (reference material)
+│
+├── archetype/              ← THE ENGINE (stays permanently)
+│   ├── conventions/        ← source of truth for universal conventions
+│   ├── bootstrap/          ← ran once, stays for reference
+│   ├── scaffolding/        ← ran once, stays for reference
+│   ├── development/        ← DEVELOP.md, MAINTAIN.md (ongoing reference)
+│   ├── templates/          ← for generating new features/systems
+│   ├── FRAMEWORK-SOURCE.md ← pointer back to framework repo
+│   └── (future: update.sh) ← pulls latest, applies non-destructive updates
+│
+├── docs/
+└── src/
+```
+
+Key: the archetype/ folder is NOT deprecated after bootstrap. It stays as the updatable engine:
+- Convention docs are read during development, not just bootstrap
+- Templates are used when creating new features
+- DEVELOP.md and MAINTAIN.md are ongoing reference
+- Future update mechanism needs the engine to compare versions
+
+The project runs FROM root (CLAUDE.md, References.md, conventions/). archetype/ powers it from behind.
+
+## Update Mechanism (future)
+
+When the framework evolves:
+1. Pull latest archetype from the framework repo
+2. update.sh compares versions
+3. Overwrites universal files (conventions/) - these are framework-owned
+4. Skips project-specific files (References.md, overrides, protocols) - these are project-owned
+5. Flags new conventions that were added (project needs to adopt)
+6. Flags removed or renamed conventions (project needs to update references)
+7. Shows changelog of what changed since the project's version
+
 ## What This Framework Is NOT
 
 - Not a linter (linters handle formatting)

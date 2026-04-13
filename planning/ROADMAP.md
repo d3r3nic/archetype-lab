@@ -33,24 +33,33 @@
 - [x] Part C: Cross-reference extracted files (CLAUDE.md, References.md, INDEX.md)
 - [x] Part D: Documentation discovery, migration, and audit
 - [x] Test on Development3/frontend-dashboard
-- [ ] Complete Part D audit on frontend-dashboard
+- [x] Part D audit on frontend-dashboard (44 docs migrated, 41 audited, 15 doc issues fixed)
+- [x] Code audit on frontend (4 TODO files with actionable fixes)
 - [ ] Test on Development3/backend
-- [ ] Promotion phase: how to safely move archetype/ to project root
+- [ ] Promotion step: move from archetype/ subfolder to project root integration
 
 ## Phase 5: Real-World Validation
 - [x] End-to-end test: bootstrap + scaffold + develop a working todo app
 - [x] Verify scaffolded code follows conventions (centralized errors, API layer, shared UI)
 - [x] Production-grade theme requirement (light + dark mode)
 - [x] Established UI library requirement (don't reinvent buttons/inputs/modals)
+- [x] Lazy loading, workflow gate, session memory, task mapping (external review)
+- [x] CLAUDE.md at project root, bootstrap gate, scope expansion, hooks guidance
+- [x] archetype/ as permanent engine (not deprecated after bootstrap)
 - [ ] Run scaffolding on a Python backend
 - [ ] Run scaffolding on a .NET backend
 - [ ] Run scaffolding on a mobile project (React Native or Flutter)
 
-## Phase 6: Maintenance & Self-Improvement
-- [ ] Framework guides its own development (eat own dog food)
+## Phase 6: Versioning & Updates
+- [x] CHANGELOG.md created with full history from origin to current
+- [ ] Version tags on archetype repo (v1.0 when framework stabilizes)
+- [ ] update.sh: pull latest framework, diff, apply non-destructive changes
+- [ ] PROMOTE.md: step-by-step for moving archetype/ contents to project root
+
+## Phase 7: Maintenance & Self-Improvement
 - [ ] Process for adding new conventions
 - [ ] Process for updating when new techniques emerge
-- [ ] Version strategy for conventions
 - [ ] Convention dependency graph documentation
 - [ ] Optional addon docs (A1 i18n, A2 Observability)
 - [ ] Scaffolding for existing projects (closing gaps, not building from scratch)
+- [ ] Backend project migration
