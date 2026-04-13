@@ -331,7 +331,30 @@ Why NOT deprecate archetype/:
 - Update mechanism needs the engine to compare versions
 - The engine is like a package dependency: it powers things but the project doesn't run FROM it
 
-## Key Decisions (Final - all steps)
+### Step 22: Non-destructive update mechanism (update.sh)
+
+Created update.sh that pulls latest framework from GitHub and applies non-destructive updates:
+- Universal files overwritten: conventions/, templates/, phase docs, CLAUDE.md, Conventions.md
+- Project-specific files NEVER touched: References.md, feature-tree.md, conventions/overrides/, protocols/, catalogs/, docs/, todo/
+- conventions/overrides/ preserved when updating conventions/ (backup → overwrite → restore)
+- Updates CLAUDE.md at both archetype/ and project root
+- Appends to VERSION-LOG.md with date and commit hash
+
+Also updated inject.sh to create VERSION-LOG.md at injection time with bootstrap commit hash.
+
+Tested on game-test project: update detected changed files, applied cleanly, logged to VERSION-LOG.md.
+
+### Step 23: Bootstrap and scaffold logging
+
+VERSION-LOG.md only recorded injection and updates. Bootstrap and scaffold phases left no trace.
+
+Fixed:
+- ONBOARD.md Step 5: after bootstrap, AI logs to VERSION-LOG.md (date, type, tech stack, files generated with counts, conventions read, discovery answers, key decisions)
+- SCAFFOLD.md: after scaffold, AI appends to VERSION-LOG.md (date, sessions, systems built with locations, systems skipped, deps, verification)
+
+A future AI or developer can now trace exactly what happened during each phase without needing the original conversation.
+
+## Key Decisions (Final - all 30 decisions across 23 steps)
 
 1. CLAUDE.md is a lean routing table with enforcement rules. Zero project context.
 2. Conventions are framework-agnostic. They describe WHAT and WHY, not HOW.
@@ -344,29 +367,30 @@ Why NOT deprecate archetype/:
 9. Every convention produces a reusable foundational system at project creation.
 10. Bootstrap = applying #0 to each convention for the chosen framework.
 11. The bootstrap interviews the user in plain English instead of asking for tech stack upfront.
-12. The AI reads the user's experience level from the conversation and adjusts infrastructure choices.
-13. Dark mode and an established UI library are non-negotiable in the styling/design conventions.
-14. Existing project bootstrap has 4 parts: scan codebase (A), extract rules (B), cross-reference (C), migrate and audit docs (D).
-15. Rule extraction must preserve the full original text, not summarize.
-16. Documentation discovery searches the entire project, not just /docs/.
-17. When the discovery is ambiguous, the AI asks the user instead of guessing.
-18. All extraction/migration is non-destructive: original files are never modified, only copied.
-19. CLAUDE.md uses lazy loading - AI reads only the 2-4 conventions relevant to the task.
-20. A workflow gate before code generation forces the AI to identify and read relevant conventions.
-21. Cross-session memory warning prevents drift in multi-session projects.
-22. Conventions.md is explicitly a lookup index with a task-to-convention mapping table.
-23. CLAUDE.md lives at project root (auto-loaded). Everything else in archetype/ subfolder.
-24. AI must state which conventions it read before writing code (verification checkpoint).
-25. If References.md doesn't exist, AI must run bootstrap before writing code.
-26. If task scope expands mid-work, AI re-scans Conventions.md for newly relevant conventions.
-27. archetype/ folder stays permanently as the engine. Not deprecated after bootstrap.
-28. Project runs from root (CLAUDE.md, References.md, conventions/). archetype/ is the updatable engine.
+12. The AI reads the user's experience level and adjusts infrastructure choices.
+13. Dark mode and established UI library are non-negotiable.
+14. Existing project bootstrap has 4 parts: scan (A), extract rules (B), cross-reference (C), migrate/audit docs (D).
+15. Rule extraction preserves full original text, never summarizes.
+16. Documentation discovery searches entire project, not just /docs/.
+17. When discovery is ambiguous, AI asks instead of guessing.
+18. All extraction/migration is non-destructive.
+19. CLAUDE.md uses lazy loading - read only 2-4 relevant conventions per task.
+20. Workflow gate forces AI to identify and read conventions before writing code.
+21. Cross-session memory warning prevents drift.
+22. Conventions.md is a lookup index with task-to-convention mapping.
+23. CLAUDE.md at project root (auto-loaded). Everything else in archetype/.
+24. AI states which conventions it read before first code output.
+25. Bootstrap gate: if References.md doesn't exist, run bootstrap first.
+26. Scope expansion: re-scan Conventions.md if task scope changes.
+27. archetype/ stays permanently as the engine. Not deprecated.
+28. Project runs from root. archetype/ is the updatable engine behind it.
+29. update.sh handles non-destructive framework updates. VERSION-LOG.md is the audit trail.
+30. Bootstrap and scaffold log what they did to VERSION-LOG.md for traceability.
 
 ## Still Open
 
-- Version strategy and CHANGELOG for framework releases
-- Update mechanism (update.sh that pulls latest, diffs, applies non-destructive changes)
-- Promotion step documentation (PROMOTE.md for moving from archetype/ to root)
+- Version tags on archetype repo (v1.0 when framework stabilizes)
+- PROMOTE.md for moving from archetype/ subfolder to project root integration
 - Convention dependency graph
 - Optional addon docs (i18n, observability)
 - Backend project migration (frontend done, backend not yet)
@@ -375,8 +399,15 @@ Why NOT deprecate archetype/:
 ## Current Status
 
 Framework is production-ready with active refinement.
-- 22+ commits to the product (archetype repo)
+- 25+ commits to the product (archetype repo)
 - Tested: vibe coder bootstrap (bakery, todo), developer stacks (.NET, Node.js), real existing project (MobileMed frontend)
+- Full migration on MobileMed frontend: rule extraction, doc migration/audit, code audit, TODO generation
+- Deployed to 3 projects: MobileMed frontend, game-test, framework itself
+- update.sh tested and working on game-test project
+- VERSION-LOG.md tracks bootstrap, updates, and scaffold phases
+- CLAUDE.md: 44 lines. Conventions.md: 66 lines. 23 convention docs. 4 phase docs.
+- Factory has: PLAN.md (23 steps), CHANGELOG.md (14 entries), ARCHITECTURE.md, ROADMAP.md (7 phases)
+- Next: version tags, PROMOTE.md, backend migration
 - Full migration on Development3/frontend-dashboard: rule extraction (30 files), doc migration/audit (44 files), code audit (4 TODO files), all docs updated
 - Deployed to 3 projects: MobileMed frontend, game-test, and the framework itself
 - CLAUDE.md: 44 lines with lazy loading, workflow gate, session memory, bootstrap gate, scope expansion

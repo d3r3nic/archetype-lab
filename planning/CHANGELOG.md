@@ -2,18 +2,46 @@
 
 Every improvement to the Archetype framework, why it was made, and what triggered it.
 
-## 2026-04-13 (Step 20-21)
+## 2026-04-13 (Steps 20-23)
 
-Trigger: External review + real-world usage on MobileMed frontend
+### Step 23: Bootstrap and scaffold logging to VERSION-LOG.md
+Trigger: VERSION-LOG.md existed but only update.sh wrote to it. Bootstrap and scaffold left no trace of what they did.
 
 Changes:
-- CLAUDE.md: moved to project root via inject.sh (Claude Code auto-reads from root)
-- CLAUDE.md: added verification checkpoint ("state which conventions you read")
+- ONBOARD.md Step 5: after bootstrap, AI logs to VERSION-LOG.md (date, type, tech stack, files generated with counts, conventions read, discovery answers, key decisions)
+- SCAFFOLD.md: after scaffold, AI appends to VERSION-LOG.md (date, sessions, systems built with locations and convention numbers, systems skipped, deps installed, verification status)
+- A future AI or developer can now trace exactly what happened during each phase
+
+### Step 22: update.sh and VERSION-LOG.md
+Trigger: Need non-destructive framework updates across multiple projects. Manual syncing doesn't scale.
+
+Changes:
+- Created update.sh: pulls latest from GitHub, compares, shows diff, asks confirmation, applies
+- Universal files overwritten (conventions, templates, phase docs, CLAUDE.md). Project-specific NEVER touched (References.md, feature-tree.md, overrides, protocols, catalogs, docs, todo)
+- conventions/overrides/ preserved when updating conventions/ (backup → overwrite → restore)
+- VERSION-LOG.md: created by inject.sh (bootstrap commit hash) and appended by update.sh (date, commit hash per update)
+- inject.sh updated: now also copies update.sh and creates VERSION-LOG.md
+- Tested on game-test project: update detected changed files, applied cleanly, logged commit e5f2db1
+
+### Step 21: archetype/ as permanent engine (not deprecated)
+Trigger: Discussion about whether archetype/ should be removed after bootstrap
+
+Decision: archetype/ stays permanently. It's the engine, not disposable scaffolding. Reasons:
+- Convention docs are read during development, not just bootstrap
+- Templates used when creating new features
+- DEVELOP.md and MAINTAIN.md are ongoing reference
+- update.sh needs the engine to compare versions
+- Project runs FROM root (CLAUDE.md, References.md). archetype/ powers from behind.
+
+### Step 20: CLAUDE.md root placement, verification, bootstrap gate, scope expansion, hooks guidance
+Trigger: External review identified 5 issues with enforcer effectiveness
+
+Changes:
+- inject.sh: copies CLAUDE.md to project root (Claude Code auto-reads), archives existing
+- CLAUDE.md: added verification checkpoint ("state which conventions you read before first code output")
 - CLAUDE.md: added bootstrap gate ("if References.md doesn't exist, run bootstrap first")
-- CLAUDE.md: added scope expansion rule ("re-scan if task scope changes")
-- hooks-spec.md: added setup instructions for Claude Code, Cursor, and other tools
-- Architecture decision: archetype/ stays permanently as engine, not deprecated after bootstrap
-- Project runs from root files. archetype/ is the updatable engine behind them.
+- CLAUDE.md: added scope expansion ("re-scan Conventions.md if task scope changes mid-work")
+- hooks-spec.md: added setup instructions for Claude Code, Cursor, other tools. Made clear hooks optional but AI can help wire them up.
 
 ## 2026-04-12 (Step 19)
 
