@@ -52,9 +52,14 @@
 
 ## Phase 6: Versioning & Updates
 - [x] CHANGELOG.md created with full history from origin to current
+- [x] update.sh: pull latest, diff, apply non-destructive changes (tested on game-test)
+- [x] VERSION-LOG.md: tracks bootstrap date, every update with commit hash
+- [x] inject.sh creates VERSION-LOG.md at injection time
+- [x] Bootstrap and scaffold phases log to VERSION-LOG.md
+- [x] Enforcer hardened to 19 rules (Step 24)
 - [ ] Version tags on archetype repo (v1.0 when framework stabilizes)
-- [ ] update.sh: pull latest framework, diff, apply non-destructive changes
-- [ ] PROMOTE.md: step-by-step for moving archetype/ contents to project root
+- [ ] PROMOTE.md: step-by-step for moving archetype/ to project root
+- [ ] Backend-specific enforcement rules (separate from universal)
 
 ## Phase 7: Maintenance & Self-Improvement
 - [ ] Process for adding new conventions

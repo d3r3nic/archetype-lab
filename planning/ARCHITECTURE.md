@@ -39,10 +39,13 @@ NOTE: This intentionally overrides the AI system prompt default of "don't design
 
 ```
 Layer 0: CLAUDE.md (THE ENFORCER / ROUTING TABLE)
-  - ~13 direct "never do X" rules, each with a redirect to a convention doc
+  - 19 enforcement rules, each a direct "never do X" with a redirect to a convention doc
+  - Starts with "If uncertain, ask" (most important safety valve, first not last)
+  - Includes workflow gates: read conventions before coding, verify before committing, search code before building
+  - Includes meta-rule: AI cannot modify its own rules without permission
   - Catches the AI mid-mistake and routes it to the right document
   - No project context. No tech stack. No examples.
-  - Copied as-is into every project. Universal across frameworks.
+  - Lives at project root (auto-loaded by Claude Code). archetype/ subfolder has everything else.
 
 Layer 1: Conventions.md (THE DNA INDEX)
   - Index of all 23 conventions with one-line descriptions and links
@@ -219,7 +222,9 @@ project/
 │   ├── development/        ← DEVELOP.md, MAINTAIN.md (ongoing reference)
 │   ├── templates/          ← for generating new features/systems
 │   ├── FRAMEWORK-SOURCE.md ← pointer back to framework repo
-│   └── (future: update.sh) ← pulls latest, applies non-destructive updates
+│   ├── VERSION-LOG.md      ← audit trail (bootstrap date, every update with commit hash)
+│   ├── update.sh           ← pulls latest framework, applies non-destructive updates
+│   └── inject.sh           ← original injection script (for reference)
 │
 ├── docs/
 └── src/
@@ -229,20 +234,24 @@ Key: the archetype/ folder is NOT deprecated after bootstrap. It stays as the up
 - Convention docs are read during development, not just bootstrap
 - Templates are used when creating new features
 - DEVELOP.md and MAINTAIN.md are ongoing reference
-- Future update mechanism needs the engine to compare versions
+- update.sh needs the engine to compare versions and apply changes
+- VERSION-LOG.md records every bootstrap, scaffold, and update with dates and commit hashes
 
 The project runs FROM root (CLAUDE.md, References.md, conventions/). archetype/ powers it from behind.
 
-## Update Mechanism (future)
+## Update Mechanism (implemented)
 
-When the framework evolves:
-1. Pull latest archetype from the framework repo
-2. update.sh compares versions
-3. Overwrites universal files (conventions/) - these are framework-owned
-4. Skips project-specific files (References.md, overrides, protocols) - these are project-owned
-5. Flags new conventions that were added (project needs to adopt)
-6. Flags removed or renamed conventions (project needs to update references)
-7. Shows changelog of what changed since the project's version
+update.sh handles non-destructive framework updates:
+1. Pulls latest archetype from the framework repo (github.com/d3r3nic/archetype)
+2. Shows what would change (diff between local and latest)
+3. Asks for confirmation before applying
+4. Overwrites universal files (conventions/, templates/, phase docs, CLAUDE.md) - framework-owned
+5. Preserves project-specific files (References.md, feature-tree.md, overrides, protocols, catalogs, docs, todo) - project-owned
+6. Preserves conventions/overrides/ when updating conventions/ (backup → overwrite → restore)
+7. Updates CLAUDE.md at both archetype/ and project root
+8. Appends to VERSION-LOG.md with date and commit hash
+
+Tested on game-test project. Run from archetype/ folder: `./update.sh`
 
 ## What This Framework Is NOT
 
