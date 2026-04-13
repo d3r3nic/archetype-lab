@@ -249,6 +249,24 @@ The frontend project had a substantial /docs/ folder (12 numbered topic folders 
 
 Critical rule: original /docs/ stays untouched. Copies and audits live entirely in archetype/.
 
+### Step 19: CLAUDE.md lazy loading, workflow gate, session memory
+
+External review identified 6 issues with the CLAUDE.md enforcer:
+
+1. "Read everything upfront" defeats its own purpose. The AI either reads all 23 convention docs (context flooding) or reads only the index and skips the actual rules. Fixed: lazy loading instruction - "scan Conventions.md, identify which 2-4 conventions apply, read ONLY those."
+
+2. No workflow gate before code generation. The 16 enforcement rules are reactive guardrails but nothing forces the AI to actually read the convention doc before coding. Fixed: added "Before Writing Code" section requiring the AI to identify applicable conventions and read them. Creates a visible checkpoint.
+
+3. No cross-session memory protection. Every new session starts fresh but the CLAUDE.md didn't acknowledge this. Fixed: "Do not assume you remember conventions from a previous session."
+
+4. Conventions.md reads like a table of contents, not a lookup index. Fixed: reframed header as "This is a LOOKUP INDEX. Do not read all 23."
+
+5. No mapping from task types to conventions. Fixed: added quick-reference table mapping 10 common task types to which conventions to read.
+
+6. Enforcement rules link to conventions but don't state the key rule inline. Not needed if #2 (workflow gate) is in place - the gate forces reading the full convention doc.
+
+Total cost: ~12 lines across 2 files. CLAUDE.md: 38 lines. Conventions.md: 66 lines.
+
 ## Key Decisions Added
 
 11. The bootstrap interviews the user in plain English instead of asking for tech stack upfront.
@@ -269,12 +287,20 @@ Critical rule: original /docs/ stays untouched. Copies and audits live entirely 
 - Promotion phase: how to safely move archetype/ contents to project root and archive the original CLAUDE.md
 - Scaffolding for existing projects: SCAFFOLD.md is for new projects, no equivalent for migrating an existing project's gaps
 
+## Key Decisions Added (Step 19)
+
+19. CLAUDE.md uses lazy loading - AI reads only the 2-4 conventions relevant to the task, not all 23.
+20. A workflow gate before code generation forces the AI to identify and read relevant conventions.
+21. Cross-session memory warning prevents drift in multi-session projects.
+22. Conventions.md is explicitly a lookup index with a task-to-convention mapping table.
+
 ## Current Status
 
 Framework is in active production-grade refinement.
 - Tested end-to-end with vibe coder bootstrap (bakery, todo app)
 - Tested with developer-specific stacks (.NET HR tool, Node.js todo)
-- Tested on real existing project (Development3/frontend-dashboard) - extraction working, docs migration in progress
+- Tested on real existing project (Development3/frontend-dashboard) - full migration complete including rule extraction, doc migration/audit, code audit, TODO generation
 - Both repos pushed: github.com/d3r3nic/archetype (product), github.com/d3r3nic/archetype-lab (factory)
-- 18+ commits to the product since initial release
-- Next: complete frontend doc audit, then run on backend project
+- 20+ commits to the product since initial release
+- CLAUDE.md and Conventions.md refined with lazy loading, workflow gate, session memory, task mapping
+- Next: run backend migration, apply updated framework to game-test project
