@@ -2,16 +2,23 @@
 
 Every improvement to the Archetype framework, why it was made, and what triggered it.
 
-## 2026-04-13 (Step 25 - research and architecture, not yet implemented)
+## 2026-04-13 (Step 25 - IMPLEMENTED)
 
 Trigger: Framework covers frontend well but backend has 7 categories of gaps.
 
-Research: 37 backend-specific conventions across 7 categories (B1-B7).
-Architecture: FE/BE/universal separation designed. Universal stays, backend supplements.
-Audit: 4 overlaps (reference not duplicate), 4 redundancies (already covered), 30+ genuinely new.
+Research: 37 backend-specific conventions across 7 categories. Audited against universal: 4 overlaps referenced not duplicated, 4 redundancies excluded, 30+ genuinely new.
 
-Files created: research/industry/backend-conventions-research.md, planning/BACKEND-AUDIT.md
-Status: NOT YET IMPLEMENTED. Convention docs to be written in next session.
+Implemented:
+- backend/CLAUDE.md: 11 backend enforcement rules supplementing the 19 universal rules
+- backend/Conventions.md: lookup index with task-to-convention mapping
+- B1-database: N+1 prevention, migration safety, transactions, connection pooling, indexes, soft delete, ORM patterns
+- B2-api-design: URL design, HTTP methods, status codes, pagination, validation, response envelope, versioning
+- B3-middleware: ordering, request lifecycle, cross-cutting concerns, correlation IDs
+- B4-logging: structured logging (never console.log), levels, sensitive data redaction, health checks, metrics
+- B5-background-jobs: async vs sync, idempotency, retry with backoff + DLQ, job design
+- B6-file-handling: presigned URLs server-side, magic byte validation, storage abstraction
+- B7-caching: when to cache, TTL invalidation, cache layers, stampede prevention
+- Root CLAUDE.md: routes to backend/CLAUDE.md for backend projects
 
 ## 2026-04-13 (Step 24)
 
