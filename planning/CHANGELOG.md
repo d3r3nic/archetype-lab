@@ -2,6 +2,17 @@
 
 Every improvement to the Archetype framework, why it was made, and what triggered it.
 
+## 2026-04-13 (Step 25 - research and architecture, not yet implemented)
+
+Trigger: Framework covers frontend well but backend has 7 categories of gaps.
+
+Research: 37 backend-specific conventions across 7 categories (B1-B7).
+Architecture: FE/BE/universal separation designed. Universal stays, backend supplements.
+Audit: 4 overlaps (reference not duplicate), 4 redundancies (already covered), 30+ genuinely new.
+
+Files created: research/industry/backend-conventions-research.md, planning/BACKEND-AUDIT.md
+Status: NOT YET IMPLEMENTED. Convention docs to be written in next session.
+
 ## 2026-04-13 (Step 24)
 
 Trigger: Second external review of CLAUDE.md enforcer. 8 suggestions audited, 2 already implemented (confirm before coding, mid-task re-scan from Step 20), 6 genuinely new.
