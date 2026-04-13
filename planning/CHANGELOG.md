@@ -2,6 +2,19 @@
 
 Every improvement to the Archetype framework, why it was made, and what triggered it.
 
+## 2026-04-13 (Step 24)
+
+Trigger: Second external review of CLAUDE.md enforcer. 8 suggestions audited, 2 already implemented (confirm before coding, mid-task re-scan from Step 20), 6 genuinely new.
+
+Changes:
+- "If uncertain, ask" moved from last rule to first rule. Most important safety valve was buried at bottom.
+- Added meta-rule: "Never modify CLAUDE.md, Conventions.md, or convention docs without explicit permission." Prevents AI from weakening its own rules.
+- Added codebase search rule: "Search the codebase for existing implementations before building. feature-tree.md may be stale — the code is the source of truth."
+- Added commit discipline: "Commit after every verified change. Each commit is a rollback point." Convention #2 had this but the enforcer didn't.
+- Expanded convention #0 inline summary from one-liner to actionable decision points (check what exists → use it or build reusable).
+- Added database/migration row to Conventions.md lookup table.
+- CLAUDE.md enforcement rules: 16 → 19
+
 ## 2026-04-13 (Steps 20-23)
 
 ### Step 23: Bootstrap and scaffold logging to VERSION-LOG.md

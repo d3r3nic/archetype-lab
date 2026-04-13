@@ -354,7 +354,22 @@ Fixed:
 
 A future AI or developer can now trace exactly what happened during each phase without needing the original conversation.
 
-## Key Decisions (Final - all 30 decisions across 23 steps)
+### Step 24: Enforcer hardening (second external review)
+
+Second review of CLAUDE.md identified 8 suggestions. Audited against existing implementation:
+- Items 1-2 already implemented in Step 20 (confirm before coding, mid-task re-scan)
+- 6 genuinely new items implemented:
+
+1. "If uncertain, ask" moved to first rule (was last). Most important safety valve shouldn't be the last thing the AI reads.
+2. Meta-rule added: "Never modify CLAUDE.md, Conventions.md, or convention docs without explicit permission." Prevents AI from weakening its own rules when blocked by a convention.
+3. Codebase search rule: "Search the codebase before building." feature-tree.md is manually maintained and can be stale. The code is the source of truth for what exists.
+4. Commit discipline: "Commit after every verified change." Convention #2 has this but the enforcer didn't mention it, so AIs made 15 changes with no rollback points.
+5. Convention #0 expanded from one-liner to actionable: "check what exists → use it and configure, or build reusable."
+6. Database/migration row added to Conventions.md lookup table.
+
+Enforcement rules: 16 → 19. CLAUDE.md still under 50 lines.
+
+## Key Decisions (Final - all 33 decisions across 24 steps)
 
 1. CLAUDE.md is a lean routing table with enforcement rules. Zero project context.
 2. Conventions are framework-agnostic. They describe WHAT and WHY, not HOW.
@@ -386,6 +401,9 @@ A future AI or developer can now trace exactly what happened during each phase w
 28. Project runs from root. archetype/ is the updatable engine behind it.
 29. update.sh handles non-destructive framework updates. VERSION-LOG.md is the audit trail.
 30. Bootstrap and scaffold log what they did to VERSION-LOG.md for traceability.
+31. "If uncertain, ask" is the first enforcement rule, not the last.
+32. Meta-rule protects the rules: AI cannot modify CLAUDE.md or convention docs without permission.
+33. AI must search the codebase (not just feature-tree) before building anything.
 
 ## Still Open
 
