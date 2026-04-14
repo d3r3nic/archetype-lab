@@ -2,6 +2,19 @@
 
 Every improvement to the Archetype framework, why it was made, and what triggered it.
 
+## 2026-04-13 (Step 26)
+
+Trigger: External plan review identified security as significantly under-covered. Convention #11 is 90% auth, 10% security. AI generates 2.74x more security vulnerabilities but the framework has no dedicated security convention.
+
+Changes:
+- Convention #11: renamed scope to Authentication only. Added auth provider guidance section.
+- Convention #23: NEW - Application Security (OWASP, input validation, CORS/CSRF, security headers, encryption, session management, error leakage, PII/data retention, supply chain security, audit logging)
+- Convention #24: NEW - Authorization (RBAC/ABAC, service-layer enforcement, object access checks, row-level security). Separated from auth (identity vs permissions are different concerns).
+- Conventions.md: added Security category with #23 and #24, added 3 lookup table rows
+- CLAUDE.md: added 2 enforcement rules for #23 and #24
+
+Design decision: security conventions go in universal (not backend-specific) because frontend also needs input validation, XSS prevention, CORS handling, and secure storage.
+
 ## 2026-04-13 (Step 25 - IMPLEMENTED)
 
 Trigger: Framework covers frontend well but backend has 7 categories of gaps.
