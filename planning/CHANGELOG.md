@@ -2,18 +2,18 @@
 
 Every improvement to the Archetype framework, why it was made, and what triggered it.
 
-## 2026-04-13 (Step 26)
+## 2026-04-13 (Step 26 - IMPLEMENTED)
 
 Trigger: External plan review identified security as significantly under-covered. Convention #11 is 90% auth, 10% security. AI generates 2.74x more security vulnerabilities but the framework has no dedicated security convention.
 
 Changes:
-- Convention #11: renamed scope to Authentication only. Added auth provider guidance section.
-- Convention #23: NEW - Application Security (OWASP, input validation, CORS/CSRF, security headers, encryption, session management, error leakage, PII/data retention, supply chain security, audit logging)
-- Convention #24: NEW - Authorization (RBAC/ABAC, service-layer enforcement, object access checks, row-level security). Separated from auth (identity vs permissions are different concerns).
-- Conventions.md: added Security category with #23 and #24, added 3 lookup table rows
-- CLAUDE.md: added 2 enforcement rules for #23 and #24
+- Convention #11: renamed to Authentication. Added auth provider guidance (Supabase, Clerk, Auth0, Cognito, Firebase, ASP.NET Identity, Django auth). Authorization and security content split to #23 and #24.
+- Convention #23: NEW - Application Security (OWASP, input validation allowlisting, CORS/CSRF, security headers, encryption at rest/transit, session management, error leakage, PII/data retention, supply chain security, audit logging, rate limiting, secret management)
+- Convention #24: NEW - Authorization (RBAC/ABAC, centralized permission service, service-layer enforcement, object-level access checks, least privilege, authorization denial logging)
+- Conventions.md: added Security category, 3 new lookup table rows (permissions, input validation, security review)
+- CLAUDE.md: added 2 enforcement rules (21 total): input validation at entry points, authorization at service layer
 
-Design decision: security conventions go in universal (not backend-specific) because frontend also needs input validation, XSS prevention, CORS handling, and secure storage.
+Design decision: security conventions go in universal (not backend-specific) because frontend also needs input validation, XSS prevention, CORS handling, and secure storage. Total conventions: 25 universal + 7 backend = 32.
 
 ## 2026-04-13 (Step 25 - IMPLEMENTED)
 
