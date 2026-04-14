@@ -423,9 +423,9 @@ Framework is production-ready with active refinement.
 - Deployed to 3 projects: MobileMed frontend, game-test, framework itself
 - update.sh tested and working on game-test project
 - VERSION-LOG.md tracks bootstrap, updates, and scaffold phases
-- CLAUDE.md: 44 lines. Conventions.md: 66 lines. 23 convention docs. 4 phase docs.
-- Factory has: PLAN.md (23 steps), CHANGELOG.md (14 entries), ARCHITECTURE.md, ROADMAP.md (7 phases)
-- Next: version tags, PROMOTE.md, backend migration
+- CLAUDE.md: ~50 lines, 21 enforcement rules. Conventions.md: ~70 lines. 25 universal + 7 backend convention docs. 4 phase docs.
+- Factory has: PLAN.md (26 steps), CHANGELOG.md (17 entries), ARCHITECTURE.md, ROADMAP.md (7 phases)
+- Next: version tags, PROMOTE.md, backend project migration
 - Full migration on Development3/frontend-dashboard: rule extraction (30 files), doc migration/audit (44 files), code audit (4 TODO files), all docs updated
 - Deployed to 3 projects: MobileMed frontend, game-test, and the framework itself
 - CLAUDE.md: 44 lines with lazy loading, workflow gate, session memory, bootstrap gate, scope expansion

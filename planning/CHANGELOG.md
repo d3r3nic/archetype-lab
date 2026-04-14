@@ -2,6 +2,15 @@
 
 Every improvement to the Archetype framework, why it was made, and what triggered it.
 
+## 2026-04-14 (Step 27)
+
+Trigger: Review found #11 still has authorization and security content after the split. Three conventions (#11, #23, #24) cover overlapping topics. AI gets confused about which is authoritative. Also "23 conventions" count stale in multiple files.
+
+Changes:
+- Convention #11: pruned to pure authentication only. Removed authorization content (moved to #24), removed security content (moved to #23). #11 now covers ONLY: identity, tokens, auth providers, auth utility wrapping.
+- Updated convention count from "23" to "25" in ARCHITECTURE.md and any other files referencing the old count.
+- Committed all pending work cleanly.
+
 ## 2026-04-13 (Step 26 - IMPLEMENTED)
 
 Trigger: External plan review identified security as significantly under-covered. Convention #11 is 90% auth, 10% security. AI generates 2.74x more security vulnerabilities but the framework has no dedicated security convention.

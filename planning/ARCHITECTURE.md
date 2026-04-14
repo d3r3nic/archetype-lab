@@ -48,7 +48,7 @@ Layer 0: CLAUDE.md (THE ENFORCER / ROUTING TABLE)
   - Lives at project root (auto-loaded by Claude Code). archetype/ subfolder has everything else.
 
 Layer 1: Conventions.md (THE DNA INDEX)
-  - Index of all 23 conventions with one-line descriptions and links
+  - Index of all 25 conventions with one-line descriptions and links
   - Starts with #0 Reusability as the meta-convention
   - References the 4-phase model at the top
   - Framework-agnostic. Language-agnostic. Lean.

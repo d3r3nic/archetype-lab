@@ -42,8 +42,8 @@ project/
 │   Has a section: "If this is a frontend project, also read frontend/CLAUDE.md"
 │
 ├── archetype/
-│   ├── Conventions.md            ← universal lookup index (23 conventions)
-│   ├── conventions/              ← universal convention docs (23 files)
+│   ├── Conventions.md            ← universal lookup index (25 conventions)
+│   ├── conventions/              ← universal convention docs (25 files)
 │   │
 │   ├── backend/                  ← BACKEND-SPECIFIC
 │   │   ├── CLAUDE.md             ← backend enforcement rules (supplements universal)
