@@ -8,7 +8,9 @@ Trigger: Review found #11 still has authorization and security content after the
 
 Changes:
 - Convention #11: pruned to pure authentication only. Removed authorization content (moved to #24), removed security content (moved to #23). #11 now covers ONLY: identity, tokens, auth providers, auth utility wrapping.
-- Updated convention count from "23" to "25" in ARCHITECTURE.md and any other files referencing the old count.
+- Updated convention count from "23" to "25" in CLAUDE.md, Conventions.md, README.md, ONBOARD.md, ARCHITECTURE.md, PLAN.md, BACKEND-AUDIT.md.
+- Fixed backend/Conventions.md: "23 conventions for any project" → "25". Updated #11 references from "auth/security" to "authentication", #11 security reference to #23.
+- Fixed README.md enforcement rule count: 16 → 21.
 - Committed all pending work cleanly.
 
 ## 2026-04-13 (Step 26 - IMPLEMENTED)
