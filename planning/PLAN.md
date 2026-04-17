@@ -405,11 +405,49 @@ Enforcement rules: 16 → 19. CLAUDE.md still under 50 lines.
 32. Meta-rule protects the rules: AI cannot modify CLAUDE.md or convention docs without permission.
 33. AI must search the codebase (not just feature-tree) before building anything.
 
+### Step 29: Framework hardening — validator, session review, convention #25, hooks
+
+Trigger: Plan audit identified framework scores 8/10 design, 6/10 battle-testing. Six-improvement plan surfaced. After critical review, trimmed to what actually delivers value without bloat.
+
+Dropped from original plan:
+- Convention dependency graph (mechanical make-work, adding `## Dependencies` to 32 files with no clear consumer)
+- 5 of 7 proposed hooks (noise generators — doc-freshness, feature-tree-audit, post-edit-doc-check add signal-to-noise inversion)
+- ESLint-specific lint rule implementations (violates framework language-agnostic design — belongs in a separate examples repo)
+- Synthetic test project specs (user battle-testing via real webpage development beats simulated specs)
+
+Implemented:
+- scripts/validate-framework.sh — self-test: checks file paths, convention count consistency, #N references, required sections in convention docs, duplicate numbers. Auto-detects framework location (root or archetype/ subfolder).
+- conventions/25-automated-enforcement.md — new convention. Principle: lint rules catch violations at write time. Rules: every convention that CAN be automated SHOULD be, lint blocks don't warn, format on save, never bypass hooks. Framework-agnostic (research notes cover ESLint, Ruff, golangci-lint, Roslyn).
+- bootstrap/hooks/pre-destructive-warn.sh — Claude Code PreToolUse hook. Reads JSON from stdin, blocks rm -rf, git reset --hard, DROP TABLE, etc. Exit 2 with stderr message for blocking behavior per 2026 Claude Code hook spec.
+- bootstrap/hooks/post-task-verify.sh — Claude Code Stop hook. Advisory checklist reminder (build, tests, feature-tree, docs, commit). Non-blocking.
+- bootstrap/hooks/README.md — install guide for Claude Code, Cursor, other tools.
+- templates/claude-settings.json — ready-to-copy Claude Code hook configuration.
+- templates/session-review.md — 5-question template for periodic session audits (drift tracking, convention clarity, routing correctness).
+- development/MAINTAIN.md — added Session Reviews section.
+
+Research finding: hooks are actively used in 2026. Claude Code has 21 lifecycle events, PreToolUse is the only blocker, stdin receives JSON, exit code 2 blocks with context. Confirmed before building.
+
+Design decision: trimmed plan from 21-29 hours to ~6-9 hours by cutting items with marginal value. Original plan scored itself design 8→10 and battle 6→9; trimmed version delivers 80% of the value at 25% of the cost. The framework does not need a dependency graph, 7 hooks, or synthetic test specs.
+
+Convention count: 25 → 26.
+
+Files changed:
+- scripts/validate-framework.sh (new dir)
+- bootstrap/hooks/pre-destructive-warn.sh, post-task-verify.sh, README.md (new dir)
+- templates/claude-settings.json, session-review.md (new)
+- templates/hooks-spec.md (updated: points to real scripts)
+- conventions/25-automated-enforcement.md (new)
+- Conventions.md (added #25, count 25→26)
+- backend/Conventions.md (count 25→26)
+- README.md (count 25→26, added #25 mention)
+- development/MAINTAIN.md (Session Reviews section)
+- update.sh (added scripts/ to UNIVERSAL_DIRS)
+- inject.sh (added scripts to copy list)
+
 ## Still Open
 
 - Version tags on archetype repo (v1.0 when framework stabilizes)
 - PROMOTE.md for moving from archetype/ subfolder to project root integration
-- Convention dependency graph
 - Optional addon docs (i18n, observability)
 - Backend project migration (frontend done, backend not yet)
 - Scaffolding for existing projects (closing gaps, not building from scratch)

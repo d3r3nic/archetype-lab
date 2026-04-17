@@ -2,6 +2,38 @@
 
 Every improvement to the Archetype framework, why it was made, and what triggered it.
 
+## 2026-04-17 (Step 29)
+
+Trigger: Plan audit identified framework at 8/10 design, 6/10 battle-testing. Six-improvement hardening plan proposed. Critical review cut four items (dependency graph, 5 of 7 hooks, ESLint-specific files, synthetic test specs) as low-value relative to cost.
+
+Research: Confirmed hooks are actively used in 2026. Claude Code has 21 lifecycle events, PreToolUse blocks actions, event JSON on stdin, exit code 2 blocks with context.
+
+Changes:
+- scripts/validate-framework.sh (new): self-test script. Checks file path references in CLAUDE.md, convention count consistency, #N references resolve, required sections in convention docs, no duplicate numbers, backend paths. Auto-detects framework location.
+- conventions/25-automated-enforcement.md (new): convention #25. Lint rules catch violations at write time. Framework-agnostic (research notes cover ESLint, Ruff, golangci-lint, Roslyn).
+- bootstrap/hooks/pre-destructive-warn.sh (new): PreToolUse hook. Blocks destructive commands (rm -rf, git reset --hard, git push --force, DROP TABLE, TRUNCATE, chmod -R 777, dd, mkfs). Reads JSON from stdin, exits 2 with stderr message.
+- bootstrap/hooks/post-task-verify.sh (new): Stop hook. Advisory verification checklist. Non-blocking.
+- bootstrap/hooks/README.md (new): install guide for Claude Code, Cursor, other tools.
+- templates/claude-settings.json (new): Claude Code hook configuration template.
+- templates/session-review.md (new): 5-question periodic review template.
+- templates/hooks-spec.md: updated to point to real scripts in bootstrap/hooks/.
+- development/MAINTAIN.md: added Session Reviews section.
+- Conventions.md: added #25 entry in Quality category, updated count 25 → 26.
+- backend/Conventions.md: updated universal count 25 → 26.
+- README.md: updated count and added #25 mention.
+- update.sh: added scripts/ to UNIVERSAL_DIRS.
+- inject.sh: added scripts to copy list.
+
+Cut from original plan:
+- Convention dependency graph (adding `## Dependencies` to 32 files with no clear consumer)
+- 5 of 7 hooks (doc-freshness, feature-tree-audit, post-edit-doc-check, etc. — noise generators)
+- ESLint-specific lint rule .js files (violates language-agnostic design)
+- Synthetic test project specs (user battle-testing via real webpage beats simulation)
+
+Design decision: trimmed plan from 21-29 hours to ~6-9 hours. Delivers 80% of value at 25% of cost. Framework does not need a dependency graph, 7 hooks, or synthetic test specs.
+
+Convention count: 25 universal + 7 backend = 32 total → 26 universal + 7 backend = 33 total.
+
 ## 2026-04-16 (Step 28)
 
 Trigger: Bootstrap jumps to creating projects too quickly. It picks a tech stack from its training data without researching whether that's the best fit. A bakery website might be better as WordPress than React. An e-commerce site might need Shopify not a custom build. The AI should research current options and present trade-offs BEFORE committing to a stack.
