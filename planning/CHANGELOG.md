@@ -2,6 +2,19 @@
 
 Every improvement to the Archetype framework, why it was made, and what triggered it.
 
+## 2026-04-16 (Step 28)
+
+Trigger: Bootstrap jumps to creating projects too quickly. It picks a tech stack from its training data without researching whether that's the best fit. A bakery website might be better as WordPress than React. An e-commerce site might need Shopify not a custom build. The AI should research current options and present trade-offs BEFORE committing to a stack.
+
+Changes:
+- ONBOARD.md: added research phase between discovery and generation
+- The AI must research online (if capable) or present known options with trade-offs BEFORE picking a tech stack
+- Research considers: build vs buy (WordPress, Shopify, Squarespace vs custom), framework fit (Astro for content, Next.js for interactive, etc.), hosting fit, and whether the user actually needs a custom app
+- The AI presents options with pros/cons and waits for user decision
+- Only after the user confirms does the AI proceed to generate References.md
+
+Design decision: the framework should prevent over-engineering. Not every idea needs a custom React + Node app. Sometimes WordPress + a theme is the right answer. The bootstrap should be honest about this.
+
 ## 2026-04-14 (Step 27)
 
 Trigger: Review found #11 still has authorization and security content after the split. Three conventions (#11, #23, #24) cover overlapping topics. AI gets confused about which is authoritative. Also "23 conventions" count stale in multiple files.
