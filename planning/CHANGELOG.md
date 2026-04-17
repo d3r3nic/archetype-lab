@@ -2,6 +2,19 @@
 
 Every improvement to the Archetype framework, why it was made, and what triggered it.
 
+## 2026-04-17 (Step 29 follow-up) — update.sh self-replace bug
+
+Trigger: First deployment of Step 29 to game-test crashed mid-run with "syntax error near unexpected token `fi`". Root cause: update.sh includes itself in the UNIVERSAL_FILES copy loop, so it replaces itself while still executing. `cp` truncates-and-writes the destination, corrupting the running bash's open read descriptor. Re-running succeeded (second run used the already-copied new version), but the failure mode is unacceptable.
+
+Fix: atomic self-replace.
+- update.sh removed from UNIVERSAL_FILES (main copy loop no longer touches it)
+- Added a dedicated Step 9 at the very end of update.sh that does: `cp new update.sh.new` → `mv update.sh.new update.sh`. The mv is a rename, which unlinks the old inode but keeps it alive as long as bash holds it open. The running script continues reading the old content from its fd while future executions get the new file.
+- Comparison output still lists update.sh as "CHANGED (self-replace at end)" so users see it
+
+Files: dist/update.sh only. Convention count unchanged.
+
+Lesson for future framework scripts: never let a running script overwrite itself with plain cp. Use cp-then-mv or write to a `.new` and handle on next run.
+
 ## 2026-04-17 (Step 29)
 
 Trigger: Plan audit identified framework at 8/10 design, 6/10 battle-testing. Six-improvement hardening plan proposed. Critical review cut four items (dependency graph, 5 of 7 hooks, ESLint-specific files, synthetic test specs) as low-value relative to cost.
