@@ -2,6 +2,53 @@
 
 Every improvement to the Archetype framework, why it was made, and what triggered it.
 
+## 2026-04-17 (Step 37) — Phase 3 (Develop) first audit + fix
+
+Trigger: first-ever Phase 3 agent test against a REAL working scaffolded project (game-test: Node 24 + Fastify 5 + Prisma 6 + SQLite, all 8 foundational systems built, 2/2 existing tests passing). Agent added `record-session` feature end-to-end: 4 files created, 2 modified, all 3 verification gates green (typecheck, 7/7 tests, build).
+
+**What worked:** 100% foundational-system reuse (no rebuilds). Lazy-loading (2 of 33 convention docs read). Scaffold quality carried Phase 3 — health.test.ts was reference implementation for test placement.
+
+**Critical silent-failure found:** Conventions.md "API / data fetching" row points backend users to #9 + #10 + #8 (client-side conventions). Agent had to fall through to backend/Conventions.md manually. Less-thorough agent would silently use client-side routing for a server endpoint.
+
+**DEVELOP.md was thin (99 lines).** Agent got through because CLAUDE.md + scaffold reference code + task prompt crutched the gaps. DEVELOP.md alone would have allowed: rebuild shared systems, zero tests, skip feature doc, skip References.md update, partial commits.
+
+Changes:
+
+1. **Conventions.md routing fixed.** The "API / data fetching" row was wrong for backend users. Split into two rows: "API consumption (client-side)" → #9, #10 + #7, and "New API endpoint (server-side)" → backend/B2, #7, #8 (+ "also see backend/Conventions.md"). Stops silent wrong-routing for backend endpoint tasks.
+
+2. **DEVELOP.md rewritten with operational gates.** 99 → ~200 lines, focused on what the agent MUST do not what it should know:
+   - Step 1 expanded: "System inventory" gate — enumerate every shared system in feature-tree.md, map to "will use / not needed" before writing code.
+   - Step 2 expanded: explicit convention-routing step — open Conventions.md, identify 3-5 relevant docs, STATE them before code.
+   - Step 4 minimum-test rule added: for new HTTP endpoints requiring auth, the baseline is at least 4 integration tests (auth-fail, validation-fail, happy-path, edge-case like not-found/conflict). Categorical, not prescriptive.
+   - Step 5 feature-doc template strengthened: added API shape (request/response/errors), error table, test coverage, key decisions as required H2s.
+   - Step 6 commit-granularity rule: commit trigger is "a verification gate just passed." Never commit with failing tests.
+   - Step 7 (new): Update References.md when new top-level paths emerge (docs/features/, new feature subfolders).
+
+3. **CLAUDE.md: "never instantiate shared getter classes" rule.** Added: "If `src/shared/*` exports a getter (getDb, getLogger, etc.), never construct the underlying class directly. Type imports and namespace imports are OK." Prevents the "I'll just new up my own PrismaClient" drift — agent flagged this temptation during the test.
+
+4. **development/RED-FLAGS.md (NEW).** Parallels bootstrap/RED-FLAGS.md and scaffolding/RED-FLAGS.md. 7 Phase 3 silent-failure patterns:
+   - Rebuild shared systems (didn't read feature-tree inventory)
+   - Bypass shared getter to instantiate class directly (framework #0 violation)
+   - Zero tests (DEVELOP.md alone allows this)
+   - Skip feature doc (buried at step 5)
+   - Skip References.md update (wasn't instructed)
+   - Partial commits (no granularity rule)
+   - Route file and feature doc drift apart (no cross-link)
+
+5. **scripts/validate-develop.sh (NEW).** 5 machine-verifiable gates per feature:
+   - No `new PrismaClient()` / shared-class instantiation outside src/shared/
+   - No `console.log` in src/features/ (use shared logger)
+   - Every src/features/{name}/ has a test file matching {name}.test.ts
+   - Every feature in feature-tree.md has a docs/features/{name}.md
+   - No `throw new Error(` in features (use AppError subclasses)
+
+Zero expirable content. All additions categorical or machine-gates.
+
+Deferred:
+- Phase 4 (Maintain) — still the one untested surface
+- Feature-doc ↔ route cross-link (convention, but not silent-failure)
+- Test placement convention (unit vs integration — project-specific)
+
 ## 2026-04-17 (Step 36) — Scaffold convergence (v3) + three surgical fixes
 
 Trigger: scaffold agent v3 converged. 20/20 systems built with framework guidance (v1: 14, v2: 19, v3: 20). Zero silently-skipped systems. Zero red flags fired during build. Validator passed first try with zero errors and zero warnings across all 10 groups. 7 residual items found, all narrow polish.

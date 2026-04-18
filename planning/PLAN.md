@@ -405,6 +405,19 @@ Enforcement rules: 16 → 19. CLAUDE.md still under 50 lines.
 32. Meta-rule protects the rules: AI cannot modify CLAUDE.md or convention docs without permission.
 33. AI must search the codebase (not just feature-tree) before building anything.
 
+### Step 37: Phase 3 (Develop) first audit + fix
+
+Trigger: Phase 3 first-ever agent test against REAL scaffolded project. 100% foundational reuse, lazy-loading worked, but DEVELOP.md too thin and Conventions.md had a critical silent-wrong routing row.
+
+Implemented:
+- Conventions.md: "API / data fetching" row split (client-side vs server-side routing)
+- DEVELOP.md rewrite: system-inventory gate, convention-routing step, minimum-test rule, strengthened feature-doc template, commit-granularity rule, References.md update step
+- CLAUDE.md: "never instantiate shared getter classes" rule
+- development/RED-FLAGS.md (NEW): 7 Phase 3 silent-failure patterns
+- scripts/validate-develop.sh (NEW): 5 machine-verifiable feature gates
+
+Next: Phase 4 (Maintain) is the last untested surface. game-test has a real implemented feature + scaffold; maintenance phase testing would exercise audit + convention evolution + tech debt.
+
 ### Step 36: Scaffold convergence (v3) + three surgical fixes
 
 Trigger: agent v3 converged. 20/20 systems, zero silent skips, zero red flags fired, validator passed first try. Seven polish items, three were real silent-failure risks.
