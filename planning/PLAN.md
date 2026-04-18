@@ -405,6 +405,26 @@ Enforcement rules: 16 → 19. CLAUDE.md still under 50 lines.
 32. Meta-rule protects the rules: AI cannot modify CLAUDE.md or convention docs without permission.
 33. AI must search the codebase (not just feature-tree) before building anything.
 
+### Step 39: Phase 4 (Maintain) first audit + structural parity fix
+
+Trigger: Phase 4 first-ever agent test against real game-test. Agent produced rich audit (9 tech-debt entries, session review, feature-tree Audit Log). Surfaced structural asymmetry: Phase 4 had 1 doc vs Phase 1-3 having 2-6 routed docs + validators.
+
+Implemented — full parity pass:
+- `templates/technical-debt.md` (new) — parity with session-review and feature-doc templates
+- `development/MAINTAIN-RED-FLAGS.md` (new) — 5 Phase 4 silent-failure patterns
+- `scripts/validate-maintain.sh` (new) — 5 machine-verifiable Phase 4 gates
+- `development/MAINTAIN.md` rewrite — 3 distinct modes (routine audit / incident response / convention evolution), operational triggers, tech-debt pruning policy, convention evolution feedback loop
+- `CLAUDE.md` rule: feature directory basename == feature-tree Feature column == docs/features filename
+- `validate-develop.sh` fix: smoke-test exemption now driven by `feature-tree.md` status=smoke-test, not hardcoded name allowlist
+
+Phase 4 structural parity achieved. Next: Phase 4 v2 verification.
+
+**Framework status after Step 39:**
+- Phase 1: ✅ converged
+- Phase 2: ✅ converged
+- Phase 3: ✅ converged
+- Phase 4: structural parity complete; convergence TBD
+
 ### Step 38: Phase 3 convergence (v2) + two silent-failure fixes
 
 Trigger: v2 agent converged. All Step 37 fixes worked. 2 residual silent-failure patterns narrower than v1's.

@@ -2,6 +2,57 @@
 
 Every improvement to the Archetype framework, why it was made, and what triggered it.
 
+## 2026-04-17 (Step 39) — Phase 4 (Maintain) first audit + structural parity fix
+
+Trigger: first-ever Phase 4 agent test against real game-test project (now 2 features, 13/13 tests). Agent produced 9 tech-debt entries, session review, and feature-tree Audit Log row. Surfaced a CRITICAL structural defect: MAINTAIN.md's inline audit script and `validate-develop.sh` gave DIFFERENT answers on the same repo. Phase 4 structural asymmetry confirmed:
+- Phase 1: 4 routed docs + validator + hooks
+- Phase 2: 6 routed docs + validator
+- Phase 3: 2 routed docs + validator
+- Phase 4: 1 doc only, no validator, no RED-FLAGS, no templates parity
+
+Agent verdict: "Phase 4 is under-specified by roughly the same margin DEVELOP.md was before Step 37."
+
+Changes (full parity pass):
+
+1. **`templates/technical-debt.md` (NEW).** Parity with `session-review.md` and `feature-doc-template.md`. Categorical format for tech-debt log entries (id, date logged, what, where, convention, severity, proposed fix, status). Framework-agnostic — no language or tool specifics.
+
+2. **`development/MAINTAIN-RED-FLAGS.md` (NEW).** Parity with the 3 existing RED-FLAGS docs. 5 Phase 4 silent-failure patterns from agent:
+   - Audit done once then forgotten (no trigger discipline)
+   - Tech-debt log grows forever without pruning (no aging / escalation rule)
+   - Convention evolution captured in session review but never promoted (no feedback loop)
+   - Doc freshness drift accumulates invisibly (hooks "handle it" = defense-in-name-only)
+   - Two audits disagreeing on the same repo (MAINTAIN inline bash vs validate-develop.sh)
+
+3. **`scripts/validate-maintain.sh` (NEW).** Machine-verifiable Phase 4 gates:
+   - TECHNICAL-DEBT.md exists at project root (or justified absence documented)
+   - `feature-tree.md` has an Audit Log section with at least one entry if features/ has > N features
+   - `docs/reviews/` has at least one review after N sessions (heuristic — or justified absence)
+   - Features/ directory basename == feature-tree.md Feature column == docs/features filename (the TD-001 fix)
+   - No entries in TECHNICAL-DEBT.md with Status=Open older than N cycles without severity escalation
+
+4. **`development/MAINTAIN.md` rewritten** (177 → ~280 lines, operational):
+   - Trigger table at top: routine audit (every N commits or 2-4 weeks), incident response (after a failed deploy / flaky test / convention violation discovery), convention evolution (after accumulated session reviews).
+   - Inline bash audit script REMOVED — routed to `scripts/validate-maintain.sh` and `scripts/validate-develop.sh`. No more two-audits-disagreeing problem.
+   - Per-dimension operational checklist (feature-tree audit, doc freshness, convention violations, tech-debt pruning).
+   - Tech-debt pruning rule: entries Open > N cycles either escalate severity or get force-fixed as part of the next feature touching that area.
+   - Convention evolution flow: session-review finding → framework issue → PR.
+
+5. **CLAUDE.md: feature-directory naming rule.** Added: "Feature directory basename, feature-tree.md Feature column, and docs/features filename must all match. If business identity differs from directory name, rename so they align."
+
+6. **`scripts/validate-develop.sh` updated.** Previous version exempted `health|_health|ping|smoke` as a hardcoded name allowlist. Agent flagged this as fragile (TD-004). Fixed: exemption now driven by a `status: smoke-test` value in feature-tree.md rather than directory name.
+
+7. **References.md template updated.** Added "Convention Overrides → Test isolation strategy" stub so Phase 3 agents can fill it at scaffold time. Prevents TD-003 (test isolation choice undocumented).
+
+Zero expirable content. All new artifacts categorical.
+
+**Framework status after Step 39:**
+- Phase 1: ✅ converged (4 rounds of audits)
+- Phase 2: ✅ converged (3 rounds)
+- Phase 3: ✅ converged (2 rounds)
+- Phase 4: structural parity now achieved; v2 verification needed
+
+Next: run Phase 4 v2 against game-test to verify fixes converge.
+
 ## 2026-04-17 (Step 38) — Phase 3 convergence (v2) + two narrow silent-failure fixes
 
 Trigger: Phase 3 agent v2 against Step 37 framework. Converged cleanly — all 4 targeted fixes (Conventions.md routing, DEVELOP.md inventory + convention-routing + minimum-tests) worked as designed. Test count 7→13, validator 0 errors first try, RED-FLAGS #2 held under type-system pressure. Agent surfaced 2 residual silent-failure patterns (narrower than v1's):
