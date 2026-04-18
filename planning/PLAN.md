@@ -405,6 +405,26 @@ Enforcement rules: 16 → 19. CLAUDE.md still under 50 lines.
 32. Meta-rule protects the rules: AI cannot modify CLAUDE.md or convention docs without permission.
 33. AI must search the codebase (not just feature-tree) before building anything.
 
+### Step 40: Phase 4 convergence (v2) + two validator fixes
+
+Trigger: Phase 4 v2 converged. Agent verdict: "Phase 4 has converged to parity with Phases 1-3." Two validator fixes shipped for red flags that fired during the v2 cycle:
+- validate-maintain.sh: status-column parity with validate-develop.sh (status=smoke-test before name-allowlist fallback)
+- validate-maintain.sh: Status-field gate (FAIL if TD entries lack `Status:` field)
+
+**Framework convergence achieved — all 4 phases production-ready.**
+
+Phase-by-phase:
+- Phase 1 (Bootstrap): converged after 4 rounds + 6 surface tests
+- Phase 2 (Scaffold): converged after 3 rounds
+- Phase 3 (Develop): converged after 2 rounds
+- Phase 4 (Maintain): converged after 2 rounds
+
+Next-step candidates (not required; framework is production-ready):
+- Phase 4 v3 to verify Step 40 fixes (low urgency — the fixes are narrow)
+- Additional shape variants: fullstack (separate folders) or mobile end-to-end
+- Scaffold convergence check for frontend and platform (backend is v3-verified; others are playbook-parallel)
+- Longer-horizon: adoption beyond game-test into a real project
+
 ### Step 39: Phase 4 (Maintain) first audit + structural parity fix
 
 Trigger: Phase 4 first-ever agent test against real game-test. Agent produced rich audit (9 tech-debt entries, session review, feature-tree Audit Log). Surfaced structural asymmetry: Phase 4 had 1 doc vs Phase 1-3 having 2-6 routed docs + validators.

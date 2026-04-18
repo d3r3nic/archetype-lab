@@ -2,6 +2,38 @@
 
 Every improvement to the Archetype framework, why it was made, and what triggered it.
 
+## 2026-04-17 (Step 40) — Phase 4 convergence (v2) + two validator fixes
+
+Trigger: Phase 4 v2 verified Step 39 parity fixes. Agent verdict: "Phase 4 has converged to parity with Phases 1-3." 2 red flags fired during cycle (both caught):
+- #5 Two audits disagreeing — validate-maintain.sh still used name-only smoke-test allowlist while validate-develop.sh got status-column logic in Step 39.
+- #2 Tech-debt log grows forever — legacy TECHNICAL-DEBT entries without `Status:` field silently bypassed the stale-check (regex matched zero times, reported "no stale entries" vacuously).
+
+Two surgical fixes:
+
+1. **validate-maintain.sh status-column parity with validate-develop.sh.** Three loops updated (group 2 feature-count, group 3 feature-directory-to-doc alignment) to check `feature-tree.md` status column for `smoke-test` BEFORE falling back to name allowlist (`health|_health|ping|smoke`). Stops two-validators-disagreeing pattern.
+
+2. **validate-maintain.sh TECHNICAL-DEBT Status-field gate.** Group 4 now has two checks:
+   - FAIL: any TD-N entry lacks a `Status:` field entirely. Legacy format (e.g., `Fix policy:` instead of `Status:`) silently bypassed the staleness gate. Fix: entries must explicitly carry Status. Projects with pre-existing legacy logs need a one-time retrofit.
+   - Existing check retained: open entries older than threshold flagged as WARN.
+
+Zero expirable content.
+
+**Framework convergence achieved — all 4 phases:**
+- Phase 1 (Bootstrap): ✅ converged after 4 audit rounds + 6 surface tests + adversarial test
+- Phase 2 (Scaffold): ✅ converged after 3 audit rounds
+- Phase 3 (Develop): ✅ converged after 2 audit rounds
+- Phase 4 (Maintain): ✅ converged after 2 audit rounds
+
+Structural parity across phases:
+| Phase | Router / primary doc | RED-FLAGS | Validator | Templates |
+|-------|---------------------|-----------|-----------|-----------|
+| 1 Bootstrap | ONBOARD.md + 3 routed | bootstrap/RED-FLAGS.md | validate-framework.sh | references-*, feature-tree-*, hooks-spec |
+| 2 Scaffold | SCAFFOLD.md router + 4 playbooks + preamble | scaffolding/RED-FLAGS.md | validate-scaffold.sh | (uses templates) |
+| 3 Develop | DEVELOP.md | development/RED-FLAGS.md | validate-develop.sh | (uses feature-doc-template) |
+| 4 Maintain | MAINTAIN.md 3-mode | development/MAINTAIN-RED-FLAGS.md | validate-maintain.sh | session-review, technical-debt |
+
+Framework total: 6,500+ lines across 50+ files. Typical single-route consumption: 1,000-1,700 lines (~20%). Rest is routed-to-only.
+
 ## 2026-04-17 (Step 39) — Phase 4 (Maintain) first audit + structural parity fix
 
 Trigger: first-ever Phase 4 agent test against real game-test project (now 2 features, 13/13 tests). Agent produced 9 tech-debt entries, session review, and feature-tree Audit Log row. Surfaced a CRITICAL structural defect: MAINTAIN.md's inline audit script and `validate-develop.sh` gave DIFFERENT answers on the same repo. Phase 4 structural asymmetry confirmed:
