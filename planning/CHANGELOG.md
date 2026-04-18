@@ -2,6 +2,30 @@
 
 Every improvement to the Archetype framework, why it was made, and what triggered it.
 
+## 2026-04-17 (Step 35) — Scaffold round 2 findings fix
+
+Trigger: scaffold agent v2 (same backend GraphQL profile) ran against Step 34. 19/20 systems built with explicit framework guidance (vs 14/20 in v1), 0 silently skipped (vs 6), validator passed first run, 5 red flags caught + resolved. Six residual gaps surfaced — all narrower and more technical than v1's "entire systems missing" findings.
+
+Fixes:
+
+1. **validate-scaffold.sh CI-migration check rewritten.** v2's validator was brittle: treated safe `workflow_dispatch` manual-gate as same severity as unsafe auto-migrate-on-push, and double-counted the same file as both WARN and OK. Fixed: `workflow_dispatch` and staging/dev `if:` gates treated as safe; auto-migrate-on-`push: main/master` promoted from WARN to FAIL. No more false-positive/false-negative symmetry.
+
+2. **Pre-commit hook validator check added.** `.husky/pre-commit` (or language equivalent: lefthook, pre-commit.yml, etc.) must exist OR validator fails. Missing pre-commit = silently-shipping-without-discipline, which is how console.log / unvalidated env / missing type checks end up in production.
+
+3. **Persisted-queries validator check added.** If References.md mentions mobile clients OR public-client GraphQL, validator greps for `persistedQuer|persistedDocument` in the GraphQL setup. Absent = FAIL. Mobile clients with arbitrary-query execution is a production attack surface.
+
+4. **OpenTelemetry exporter validator check added.** If References.md names OpenTelemetry/OTLP, validator requires either an SDK startup call or OTLP exporter config. Prom-client-only with OTLP env vars defined-but-unused = FAIL.
+
+5. **Preamble deduplication.** The 8 shared scaffold rules (zero-stale, convention-mapping, handoff-check, smoke-test, verification-discipline, commit-discipline, red-flags, machine-verifiable-gate) were duplicated across SCAFFOLD.md + 4 playbooks. Extracted to `scaffolding/_preamble.md` — single source of truth. Each playbook includes a one-line reference. No more drift risk.
+
+6. **DataLoader categorical mention added.** SCAFFOLD-BACKEND Step 12 GraphQL branch now explicitly routes to the DataLoader pattern (N+1 prevention). Categorical: "build a request-scoped loader per parent→children relationship used in resolvers." Does not name a specific library; research current options for the language.
+
+Meta-finding: v2 identified zero structural gaps (no systems were silently skipped, no red flags missed). All 6 fixes are validator polish and one categorical addition. The framework's scaffold phase is converging.
+
+Deferred:
+- Rate-limit research-at-scaffold forcing function (advisory only — rate limits legitimately vary per project; forcing research may be over-prescriptive)
+- Phase 3 (Develop) and Phase 4 (Maintain) — the next untested surfaces
+
 ## 2026-04-17 (Step 34) — Scaffold phase: first audit and fix
 
 Trigger: first-ever Phase 2 (Scaffold) agent test against a realistic backend GraphQL profile (72 files generated). All 20 foundational systems built, but 6 of them were "improvised" — no SCAFFOLD.md step owned them. Agent identified 10 concrete silent-failure risks.

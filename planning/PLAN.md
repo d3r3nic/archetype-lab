@@ -405,6 +405,20 @@ Enforcement rules: 16 → 19. CLAUDE.md still under 50 lines.
 32. Meta-rule protects the rules: AI cannot modify CLAUDE.md or convention docs without permission.
 33. AI must search the codebase (not just feature-tree) before building anything.
 
+### Step 35: Scaffold round 2 fixes — validator hardening + preamble dedup
+
+Trigger: agent v2 (19/20 systems built with guidance, 0 silently skipped). Residual gaps narrow and technical.
+
+Implemented:
+- Validator CI-migration regex rewritten (workflow_dispatch safe, push-to-main auto-migrate = FAIL)
+- Validator pre-commit hook check
+- Validator persisted-queries check (when mobile clients)
+- Validator OpenTelemetry exporter check (when OTel in References)
+- Preamble deduplicated to scaffolding/_preamble.md, referenced by all playbooks
+- DataLoader categorical mention in SCAFFOLD-BACKEND Step 12 GraphQL
+
+Deferred: rate-limit research-at-scaffold (over-prescriptive); Phases 3-4 (still untested).
+
 ### Step 34: Scaffold phase — first audit and fix
 
 Trigger: first-ever Phase 2 agent test against realistic backend GraphQL profile. Agent built 20/20 systems but 6 were improvised (no SCAFFOLD step owned them). Identified 10 silent-failure risks.
