@@ -405,6 +405,31 @@ Enforcement rules: 16 → 19. CLAUDE.md still under 50 lines.
 32. Meta-rule protects the rules: AI cannot modify CLAUDE.md or convention docs without permission.
 33. AI must search the codebase (not just feature-tree) before building anything.
 
+### Step 30: Bootstrap audit fixes — closing Step 3's flanks
+
+Trigger: 5-agent audit (3 plan + 2 real execution runs in /tmp/archetype-test-*). Framework scored 8/10 on bootstrap design but the real-run blog agent generated EKS+Redis+Postgres+ArgoCD for a 5-reader blog, and the therapy agent only barely recovered a platform-appropriate choice because Step 3 saved it.
+
+Core insight: Step 3 research is the framework's strongest defense, but it has weak flanks. Four shipped patterns actively undermine it: the "Developer example" (ONBOARD:310-314) modeled capitulation; line 165 "AI respects preferences" was an unqualified compliance clause; Step 2 compliance branch routed to AWS regardless of scale/budget; convention #0 was cited for scale-fit but only covered intra-project reuse. Plus no scope-change handler and no red-flag-combination table.
+
+Implemented:
+- Rewrote the Developer example to show pushback-then-confirm pattern, not capitulation
+- Step 2 compliance branch now defers to Step 3 platform research before custom-build path
+- Line 165 qualified: AI respects preferences AND runs Step 3 anyway if mismatched
+- Added scope-change handler: re-ask affected groups, re-run Step 3 when requirements mutate
+- Extended convention #0 to cover external reusability (market platforms), correcting the miscitation
+- Added Red Flag Combinations table (8 known-bad pairs) between Step 2 and Step 3
+
+Design decision: no new templates or conventions. Edits to existing files only. Closing Step 3's flanks is higher leverage than inventing new mechanisms.
+
+Deferred to a future session:
+- references-platform.md template for "user chose a platform" outcome
+- templates/claude-settings.json path variants (inject vs clone)
+- Fullstack-in-one-folder template (Next.js, Remix, Rails, Django)
+- Mobile disambiguation (native/PWA/responsive)
+- Vague-answer fallback path
+- Mid-discovery summary checkpoint
+- Priority-forcing mechanism
+
 ### Step 29: Framework hardening — validator, session review, convention #25, hooks
 
 Trigger: Plan audit identified framework scores 8/10 design, 6/10 battle-testing. Six-improvement plan surfaced. After critical review, trimmed to what actually delivers value without bloat.

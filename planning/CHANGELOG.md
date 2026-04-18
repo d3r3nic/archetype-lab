@@ -2,6 +2,26 @@
 
 Every improvement to the Archetype framework, why it was made, and what triggered it.
 
+## 2026-04-17 (Step 30) — Bootstrap audit fixes
+
+Trigger: 5-agent audit of framework bootstrap (3 plan-only agents + 2 real execution agents on `/tmp/archetype-test-therapy/` and `/tmp/archetype-test-blog/`). All 5 converged on the same structural defects. Real-run blog agent generated EKS + Redis + Postgres + ArgoCD + Prometheus for a 5-reader personal blog because the framework gave it license to fold. Real-run therapy agent barely recovered a HIPAA-appropriate platform choice (Blueprint) because Step 3 research saved it — but Step 2's compliance branch would have routed a solo $0-budget therapist straight to AWS Cognito+RDS+IaC if a less-careful AI had followed it literally.
+
+Six critical fixes to bootstrap/ONBOARD.md + conventions/00-reusability.md:
+
+1. **Rewrote the "Developer who knows what they want" example** (ONBOARD.md:310-314). The shipped example modeled capitulation ("Perfect. Let me generate..." with zero research). The new version shows the AI running Step 3 briefly even for a confident user, confirming the use case isn't platform-served before proceeding. Both real-run and plan-only agents explicitly cited this example as the line that trained them to fold.
+
+2. **Reordered Step 2 compliance branch vs Step 3.** Old: regulated data → AWS (regardless of scale/budget). New: regulated data → run Step 3 platform research first; custom AWS path only if platform doesn't exist AND user can absorb ~$100/mo minimum compliance infra cost.
+
+3. **Qualified line 165 "AI respects preferences" clause.** Old: unqualified compliance. New: AI respects preferences AND still runs Step 3 research if platform covers the use case or scale/cost mismatch is severe.
+
+4. **Added scope-change handler to Step 2.** Linear discovery had no loop-back. Now: if user adds a requirement mid-discovery (multi-user after "solo", SSO after "personal", mobile after "web"), framework tells AI to acknowledge, re-ask affected groups, re-run Step 3 research.
+
+5. **Fixed Convention #0 miscitation and extended #0.** Old: ONBOARD line 186 cited #0 for scale-fit ("don't build what already exists") but #0 was about intra-project code reuse only. New: extended #0 to cover external reusability ("don't rebuild what already exists as a market-available platform"). Citation now honest.
+
+6. **Added Red Flag Combinations table.** 8 known-bad combinations (free + regulated data, offline + PHI, solo user + enterprise infra, real-time + static hosting, multi-user + local-only stack, enterprise SSO + consumer auth, etc.). AI must surface these before moving to Step 3.
+
+Design decision: all fixes are edits to existing files. No new convention, no new template in this session. The goal is to harden Step 3's defenses — Step 3 is the framework's strongest mechanism, and closing its flanks is higher leverage than adding new mechanisms.
+
 ## 2026-04-17 (Step 29 follow-up) — update.sh self-replace bug
 
 Trigger: First deployment of Step 29 to game-test crashed mid-run with "syntax error near unexpected token `fi`". Root cause: update.sh includes itself in the UNIVERSAL_FILES copy loop, so it replaces itself while still executing. `cp` truncates-and-writes the destination, corrupting the running bash's open read descriptor. Re-running succeeded (second run used the already-copied new version), but the failure mode is unacceptable.
