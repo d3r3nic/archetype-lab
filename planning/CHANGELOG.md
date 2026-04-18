@@ -2,6 +2,46 @@
 
 Every improvement to the Archetype framework, why it was made, and what triggered it.
 
+## 2026-04-17 (Step 32) — Round 3 verification fixes
+
+Trigger: 4 Step 31 verification agents completed (blog-v3, therapy-v3, vague-v3, shopify-v3). All four confirmed Step 31 fixes fired correctly. Shopify-v3 also verified `templates/references-platform.md` is "categorically better" than v2 hand-written; both `claude-settings` variants tested against wrong layout to confirm silent-failure mode fixed. Real improvements:
+- blog-v3 changed outcome from EKS ($150/mo) to kind local ($0) via learning-project exception
+- therapy-v3 used new references-platform.md cleanly, same outcome as v2 but faster/cleaner artifacts
+- vague-v3 correctly assumed regulated (PHI-safe default) and picked responsive+PWA manifest instead of silent React Native
+
+Agents surfaced new, smaller gaps. Prioritized by silent-wrong > polish heuristic.
+
+Fixes (8 items, all small edits):
+
+1. **PWA vs responsive distinction clarified** — vague-v3 collapsed them into one choice. Framework now presents them as genuinely separate decisions in the decision table, with an explicit "cheapest default is plain responsive; PWA adds install-to-home-screen capability on top." Forces AI to pick one, not merge.
+
+2. **Proactive learning-project heuristic** — blog-v3 needed three turns to surface the learning intent. If user opens with solo + enterprise-infra declaration (K8s, Redis, service mesh, Kafka, multi-region) for a personal/small project, framework now instructs AI to ask ship-vs-learn in the FIRST reply, not after red flags fire.
+
+3. **Hard-block for vague-regulated at deploy gate** — vague-v3 correctly assumed regulated but the question stayed open through bootstrap. A user who keeps saying "defaults" could launch on Railway/Render without a BAA. Framework now adds a pre-deploy rule: "If regulated-data question is unresolved (default-assumed yes, not explicitly answered), scaffolding and deploy steps must halt until the user affirmatively answers." Documented in ONBOARD.md and flagged in VERSION-LOG template.
+
+4. **Okta/SSO tenant ownership verification** — Added to Red Flag Combinations table: if user mentions enterprise SSO, verify they control the IdP before scaffolding auth. Prevents generating a WorkOS-Okta integration the user cannot actually provision.
+
+5. **Priority-ranking fallback** — vague-v3 correctly forced the ranking conversation but the user refused. Agent improvised a ranking on its own. Framework now specifies the default fallback order when user refuses to rank: compliance > data integrity & auth > core user flow > scale > polish. AI documents the applied order in References.md.
+
+6. **Budget-vague handling** — vague-v3 accepted "small I guess" as a free-form answer. Framework now adds a parallel to the vague-regulated rule: if budget is vague AND regulated-data is yes, surface the $100/mo minimum compliance floor before scaffolding; if regulated is no, assume $0 budget and surface cost of any non-free component before committing.
+
+7. **Convention #0 learning-project carve-out in Wrong/Right** — blog-v3 agent noted that #0's blog example says "Astro or Ghost. Done." with no carve-out. A future AI reading only #0 (not ONBOARD.md) could still mis-recommend. Added a bullet: "Exception: learning projects — see ONBOARD.md Step 3 for the carve-out."
+
+8. **references-platform.md polish**:
+   - Added pricing-caveat line: "verify current pricing on vendor's site before signup; template pricing is a reference only."
+   - Added git-init guidance: "Platform projects may still version-control References.md itself and any exported config/theme files. Use your judgment."
+   - Restructured Configuration Checklist into generic-first-then-sector-specific: the five baseline sections (Account, Domain, Legal, Security, Documentation) apply to every platform; the sector-specific sections are labeled [CONTENT/BLOG], [COMMERCE], [BOOKING], [HEALTHCARE], [WORKFLOW] so AI picks the applicable block and skips the others.
+   - De-duplicated Build Approach vs Applicable Conventions (shopify-v3 noted the repetition).
+
+9. **ONBOARD.md checklist conditional** — Shopify-v3 caught that the post-bootstrap checklist still lists `docs/systems/` and `docs/features/` as required, but Step 4 platform branch says skip them. Added conditional: "For custom builds only" tag on those rows.
+
+10. **templates/feature-tree-platform.md (NEW)** — Step 4 platform branch says "feature-tree.md reshaped as a configuration checklist" but there was no template. Shopify-v3 invented a milestone structure (Launch / Growth / Mature / Deferred). Shipping that structure as a template so future platform-path agents don't re-invent.
+
+Deferred:
+- Proactive "solo + enterprise infra = learning intent >80%" heuristic (captured in #2 above via different trigger)
+- `#26 Deployment/Orchestration` convention (larger lift, marginal value)
+- K8s scaffolding template (scaffold-phase concern, not bootstrap)
+
 ## 2026-04-17 (Step 31) — Round 2: autonomous-baseline fixes
 
 Trigger: 4 more agent runs (2 fix-verification + 2 deferral tests) against Step 30 framework. Fix verification confirmed Step 30 works — therapy-v2 cleanly reached a platform without needing to override Step 2; blog-v2 pushed back 3 times (vs 0 in round 1). Deferral tests confirmed two HIGH gaps that cause silent wrong outcomes:

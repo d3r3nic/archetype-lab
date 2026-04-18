@@ -405,6 +405,20 @@ Enforcement rules: 16 → 19. CLAUDE.md still under 50 lines.
 32. Meta-rule protects the rules: AI cannot modify CLAUDE.md or convention docs without permission.
 33. AI must search the codebase (not just feature-tree) before building anything.
 
+### Step 32: Round 3 verification fixes — closing residual silent-wrong gaps
+
+Trigger: 3 v3 verification agents confirmed Step 31 fixes fired correctly AND surfaced 8 smaller gaps. Applied silent-wrong > polish heuristic.
+
+Implemented (all small edits):
+1. PWA vs responsive clarified as distinct choices in ONBOARD Group 2 decision table
+2. Proactive learning-project heuristic — AI asks in first reply when solo + enterprise-infra declared
+3. Hard-block for vague-regulated at deploy gate — prevents launch without BAA when question stays open
+4. Okta/SSO tenant ownership verification added to Red Flag Combinations
+5. Priority-ranking fallback order when user refuses (compliance > data > auth > core flow > scale > polish)
+6. Budget-vague handling (parallel to vague-regulated rule)
+7. Convention #0 learning-project carve-out added to Wrong/Right example
+8. references-platform.md polish: pricing caveat, git-init guidance, sector-tagged Configuration Checklist
+
 ### Step 31: Round 2 — autonomous-baseline fixes
 
 Trigger: 4 more agent runs validated Step 30 works AND surfaced gaps where the autonomous outcome is still silently wrong. Core design heuristic: "if AI can do good autonomously, it can do great with guidance" — so fix what causes silent failures without human intervention, defer what produces suboptimal-but-steerable outcomes.
