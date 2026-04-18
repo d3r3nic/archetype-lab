@@ -2,6 +2,50 @@
 
 Every improvement to the Archetype framework, why it was made, and what triggered it.
 
+## 2026-04-17 (Step 33) — Steering restructure: routing over content
+
+Trigger: user audit of framework direction. Previous steps conflated minimalism with steering — proposed deletion when the correct move is compression + routing. Core principles realigned:
+
+- **Goal is steering, not minimalism.** Large framework is fine if most docs are lookup targets the index routes to only when relevant. Doc count is not the enemy.
+- **Zero expirable documentation.** Prices, specific vendor-as-THE-answer, version numbers — all must go.
+- **Compress, don't delete.** Content that has value stays — distributed across focused routed docs rather than crammed into one mega-file.
+- **Automation over discipline.** Where the framework relies on AI discipline alone (e.g., "do not summarize rules"), add a machine-verifiable gate.
+- **Only Phase 1 tested so far.** Don't over-optimize bootstrap while Scaffold/Develop/Maintain are unexplored.
+
+Surface tests since Step 32 surfaced the same pattern: framework is biased (JS in conventions prose, HIPAA in compliance examples, REST in API conventions) and missing routing (mobile decision tree, GraphQL, compliance regimes beyond HIPAA, audit-log vs app-log). None are "needs more content" — all are "needs categorical routing refactor."
+
+Changes:
+
+**1. Expirable content purged.**
+- ONBOARD.md stripped of hardcoded prices ($100/mo compliance floor, $150/mo EKS baseline, $0 kind, $15 product example). Replaced with categorical language ("compliance infra has meaningful monthly floor; research current vendor quotes before committing").
+- Convention #0 Wrong/Right compressed: named ONE canonical example per pattern with "current market leader — research at bootstrap" framing, instead of 4-7 specific vendors per example.
+
+**2. ONBOARD.md split (compress, don't delete).**
+- `bootstrap/ONBOARD.md` remains the linear flow (~400 lines, down from 696) — still covers steps 1-6 but routes out for depth.
+- `bootstrap/RED-FLAGS.md` (new) — the 10-row Red Flag Combinations table plus detailed playbooks (vague-regulated default, mobile disambiguation, deploy-gate, priority-ranking fallback, budget-vague).
+- `bootstrap/EXISTING-PROJECT.md` (new) — Parts A/B/C/D extracted (~250 lines). Rule extraction, cross-reference, doc migration.
+- `bootstrap/LEARNING-PROJECTS.md` (new) — learning-intent detection, exception flow, cost-minimization patterns for learning-oriented projects. Generalized beyond Kubernetes to any enterprise-infra-as-learning-vehicle.
+
+**3. Categorical routing added (not content, just pointers).**
+- Mobile decision tree pattern in ONBOARD.md Group 2 — parallel to web's non-technical/developer/experienced ladder. Native-capability-required vs installable-only vs read-on-phone. Not a vendor list.
+- Compliance-regime routing in Step 2 — categorical: HIPAA / SOC2 / PCI / GDPR / CCPA / sector-specific. Each a research-trigger, not a vendor answer.
+- GraphQL routing pointer in convention #9 and backend/B2: "if server uses GraphQL, research schema design, query-complexity limits, field-auth, DataLoader patterns."
+- Convention #15 lint rules refactored from 4 TS-specific examples to categorical patterns ("native linter for the language, rules catching untyped escape hatches, console-level output, unsafe casts, direct third-party UI imports").
+- Convention #23 + B4: audit-log vs app-log distinction — different retention, mutability, access controls. Pattern named, not implementation.
+- references-mobile.md: Backend section added for fullstack mobile.
+
+**4. Machine-verifiable gate.**
+- `scripts/validate-migration.sh` (new) — replaces "AI discipline" for existing-project migrations. Checks: every rule in original CLAUDE.md has a pointer in INDEX.md, every override file is non-trivial length (catches summarization), every audit file names its convention, no original files modified, migrated docs match originals byte-for-byte.
+
+**5. Adversarial robustness fix.**
+- Added rule for "no stack preference" vague answer (parallels vague-regulated). User saying "use whatever" is a deflection, not a choice — apply Step 3 default (platform-first if one covers 80%+, otherwise minimum-viable custom).
+
+Deferred (Phase 2-4 pivot):
+- Scaffold phase agent-testing
+- Multi-tenant org-isolation routing in #24 (minor, can fold into #24 later)
+- #11 provider list refactor to categorical (current list is OK pending evidence of drift)
+- Runbook template for platform admin tasks
+
 ## 2026-04-17 (Step 32) — Round 3 verification fixes
 
 Trigger: 4 Step 31 verification agents completed (blog-v3, therapy-v3, vague-v3, shopify-v3). All four confirmed Step 31 fixes fired correctly. Shopify-v3 also verified `templates/references-platform.md` is "categorically better" than v2 hand-written; both `claude-settings` variants tested against wrong layout to confirm silent-failure mode fixed. Real improvements:

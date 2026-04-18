@@ -405,6 +405,20 @@ Enforcement rules: 16 → 19. CLAUDE.md still under 50 lines.
 32. Meta-rule protects the rules: AI cannot modify CLAUDE.md or convention docs without permission.
 33. AI must search the codebase (not just feature-tree) before building anything.
 
+### Step 33: Steering restructure — routing over content
+
+Trigger: user audit realigned framework direction. Previous steps were optimizing for minimalism; correct goal is steering. Zero expirable content is a hard rule. Compress, don't delete. Automation over discipline.
+
+Implemented:
+- Purged expirable prices and vendor-as-answer specifics from ONBOARD.md and Convention #0
+- Split ONBOARD.md into linear-flow (400 lines) + 3 focused docs (RED-FLAGS.md, EXISTING-PROJECT.md, LEARNING-PROJECTS.md) routed from it
+- Added categorical routing for: mobile decision tree, compliance regimes, GraphQL patterns, audit-log vs app-log, language-agnostic lint rules
+- Added scripts/validate-migration.sh — machine-verifiable gate for existing-project migrations (replaces AI-discipline defense against summarization)
+- Generalized learning-project exception beyond Kubernetes to any enterprise-infra-as-learning-vehicle
+- Adversarial: added "use whatever" no-stack-preference rule
+
+Pivot: Phase 1 is now well-covered (4 rounds of audits + 6 surface tests). Next: test Scaffold phase against a v4 output.
+
 ### Step 32: Round 3 verification fixes — closing residual silent-wrong gaps
 
 Trigger: 3 v3 verification agents confirmed Step 31 fixes fired correctly AND surfaced 8 smaller gaps. Applied silent-wrong > polish heuristic.
