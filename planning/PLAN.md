@@ -405,6 +405,18 @@ Enforcement rules: 16 → 19. CLAUDE.md still under 50 lines.
 32. Meta-rule protects the rules: AI cannot modify CLAUDE.md or convention docs without permission.
 33. AI must search the codebase (not just feature-tree) before building anything.
 
+### Step 38: Phase 3 convergence (v2) + two silent-failure fixes
+
+Trigger: v2 agent converged. All Step 37 fixes worked. 2 residual silent-failure patterns narrower than v1's.
+
+Implemented:
+- development/RED-FLAGS.md #8: test-isolation strategies for shared-DB integration tests
+- development/RED-FLAGS.md #9: escape-hatch on type errors (casts, re-instantiation)
+- DEVELOP.md Step 5: test-isolation callout with minimum bar
+- CLAUDE.md rule: never escape-hatch a type error
+
+**Phase 3 converged.** 3 of 4 framework phases production-ready (Bootstrap, Scaffold, Develop). Phase 4 (Maintain) the last untested surface.
+
 ### Step 37: Phase 3 (Develop) first audit + fix
 
 Trigger: Phase 3 first-ever agent test against REAL scaffolded project. 100% foundational reuse, lazy-loading worked, but DEVELOP.md too thin and Conventions.md had a critical silent-wrong routing row.

@@ -2,6 +2,32 @@
 
 Every improvement to the Archetype framework, why it was made, and what triggered it.
 
+## 2026-04-17 (Step 38) — Phase 3 convergence (v2) + two narrow silent-failure fixes
+
+Trigger: Phase 3 agent v2 against Step 37 framework. Converged cleanly — all 4 targeted fixes (Conventions.md routing, DEVELOP.md inventory + convention-routing + minimum-tests) worked as designed. Test count 7→13, validator 0 errors first try, RED-FLAGS #2 held under type-system pressure. Agent surfaced 2 residual silent-failure patterns (narrower than v1's):
+
+1. **Cross-feature test-data contamination** when integration tests share a DB. Sibling test files leave rows; list-endpoint tests asserting total counts flake. Not covered by any doc. Agent hit it, diagnosed quickly, fixed by rewriting assertions to be isolation-resilient — but nothing would have warned a less-careful agent.
+
+2. **Type-system escape-hatch temptation.** Prisma's optional-field generics fought `exactOptionalPropertyTypes`. The tempting fixes (`as any`, `new PrismaClient({...})` with different config) violate conventions silently. Agent held the line but it was narrow.
+
+Fixes:
+- **development/RED-FLAGS.md #8 (NEW):** test-isolation strategies when integration tests share state — set-membership with test-scoped prefix, transaction rollback per test, separate DATABASE_URL per test file, testcontainers with reset. Categorical, not prescriptive.
+- **development/RED-FLAGS.md #9 (NEW):** escape-hatch on type errors. Never `as any`, `@ts-ignore`, or re-instantiate a shared class with laxer config. Refactor the call site.
+- **DEVELOP.md Step 5:** inline callout on test isolation with minimum bar (scoped lookups, not total-count assertions).
+- **CLAUDE.md rule:** "Never escape-hatch a type error with casts, ignore-comments, or re-instantiating a shared class with laxer config. Refactor the call site."
+
+Zero new expirable content. All additions categorical patterns with research-at-scaffold guidance.
+
+**Phase 3 convergence.** After 2 rounds of agent audits against REAL code, Phase 3 is production-ready. Remaining polish items (feature-doc drift automation, B2 envelope validator checks) are nice-to-have, not silent-failure.
+
+**Framework phase status:**
+- Phase 1 (Bootstrap): ✅ converged across 4 rounds + 6 surface tests
+- Phase 2 (Scaffold): ✅ converged across 3 rounds
+- Phase 3 (Develop): ✅ converged across 2 rounds
+- Phase 4 (Maintain): 🔴 still untested — the last surface
+
+Next: test Phase 4 against game-test (now has 2 real features, 13 passing tests, real tech debt candidates).
+
 ## 2026-04-17 (Step 37) — Phase 3 (Develop) first audit + fix
 
 Trigger: first-ever Phase 3 agent test against a REAL working scaffolded project (game-test: Node 24 + Fastify 5 + Prisma 6 + SQLite, all 8 foundational systems built, 2/2 existing tests passing). Agent added `record-session` feature end-to-end: 4 files created, 2 modified, all 3 verification gates green (typecheck, 7/7 tests, build).
