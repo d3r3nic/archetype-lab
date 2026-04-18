@@ -405,6 +405,23 @@ Enforcement rules: 16 → 19. CLAUDE.md still under 50 lines.
 32. Meta-rule protects the rules: AI cannot modify CLAUDE.md or convention docs without permission.
 33. AI must search the codebase (not just feature-tree) before building anything.
 
+### Step 36: Scaffold convergence (v3) + three surgical fixes
+
+Trigger: agent v3 converged. 20/20 systems, zero silent skips, zero red flags fired, validator passed first try. Seven polish items, three were real silent-failure risks.
+
+Implemented:
+- validate-scaffold.sh CI-migration regex anchored to YAML trigger position (no more comment-matching false positive)
+- In-memory audit-store pre-production gate (FAIL if regulated data + in-memory store with no backing store)
+- DataLoader request-scoped warning in SCAFFOLD-BACKEND Step 12
+
+Deferred (polish, not silent-failure):
+- Contract testing concretization
+- Migration-safety linter recommendation
+- Secret scanning in pre-commit defaults
+- OTel auto-instrumentation-register variant
+
+**Convergence signal.** Scaffold phase is production-ready for backend. Next pivot: Phase 3 (Develop) or Phase 4 (Maintain) — untested surfaces.
+
 ### Step 35: Scaffold round 2 fixes — validator hardening + preamble dedup
 
 Trigger: agent v2 (19/20 systems built with guidance, 0 silently skipped). Residual gaps narrow and technical.

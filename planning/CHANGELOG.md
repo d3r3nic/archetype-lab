@@ -2,6 +2,28 @@
 
 Every improvement to the Archetype framework, why it was made, and what triggered it.
 
+## 2026-04-17 (Step 36) — Scaffold convergence (v3) + three surgical fixes
+
+Trigger: scaffold agent v3 converged. 20/20 systems built with framework guidance (v1: 14, v2: 19, v3: 20). Zero silently-skipped systems. Zero red flags fired during build. Validator passed first try with zero errors and zero warnings across all 10 groups. 7 residual items found, all narrow polish.
+
+Convergence signal: the scaffold phase is production-ready for backend projects. Frontend / mobile / platform variants are playbook-parallel; similar convergence expected.
+
+Three fixes shipped (silent-failure risks only):
+
+1. **validate-scaffold.sh CI-migration regex tightened.** v3 found the validator matched `workflow_dispatch` in COMMENTS (not just as a YAML `on:` trigger). Real false-positive: a config with `# old approach used workflow_dispatch` + actual `on: push: branches: [main]` would silently pass. Fixed: regex now anchors to YAML trigger position — `workflow_dispatch:` at start of logical line OR under an `on:` key, not as a free-form word.
+
+2. **In-memory audit-store pre-production gate.** v3 flagged that an agent could ship an `InMemoryAuditStore` (test scaffold) to production silently. Audit log that disappears at process restart = SOC 2 compliance failure. Added validator check: if `audit-log` source references an in-memory implementation without a real backing store also present, WARN (because a dev-only pattern is valid early on but a production-deploy-blocker later). Escalates to FAIL if `References.md` compliance section names HIPAA/SOC2/PCI — at that point the in-memory store is incompatible with shipped code.
+
+3. **DataLoader request-scope warning.** v3 built DataLoaders correctly from common knowledge but noted the playbook didn't EMPHASIZE that loaders must be request-scoped. Module-scope DataLoader = cross-request cache leak (security bug in multi-tenant systems). Added one-line warning in SCAFFOLD-BACKEND Step 12 GraphQL: "DataLoaders MUST be per-request instances (created inside the request context). Module-scope DataLoaders leak cached data across tenants — a security bug."
+
+Not shipped (deferred as "compress don't delete" but not silent-failure):
+- Contract testing concretization (categorical guidance already present via B2 versioning pointer)
+- Migration-safety linter recommendation (over-prescriptive — squawk vs alternatives varies per DB)
+- Secret scanning in pre-commit defaults (over-prescriptive — gitleaks vs trufflehog vs alternatives)
+- OTel auto-instrumentation-register-only validator variant (rare edge case, warn not fail)
+
+Next untested surfaces: Phase 3 (Develop) — feature-building on a scaffolded project. Phase 4 (Maintain) — audit + evolution.
+
 ## 2026-04-17 (Step 35) — Scaffold round 2 findings fix
 
 Trigger: scaffold agent v2 (same backend GraphQL profile) ran against Step 34. 19/20 systems built with explicit framework guidance (vs 14/20 in v1), 0 silently skipped (vs 6), validator passed first run, 5 red flags caught + resolved. Six residual gaps surfaced — all narrower and more technical than v1's "entire systems missing" findings.
