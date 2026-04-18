@@ -2,6 +2,38 @@
 
 Every improvement to the Archetype framework, why it was made, and what triggered it.
 
+## 2026-04-17 (Step 31) — Round 2: autonomous-baseline fixes
+
+Trigger: 4 more agent runs (2 fix-verification + 2 deferral tests) against Step 30 framework. Fix verification confirmed Step 30 works — therapy-v2 cleanly reached a platform without needing to override Step 2; blog-v2 pushed back 3 times (vs 0 in round 1). Deferral tests confirmed two HIGH gaps that cause silent wrong outcomes:
+- Vague answers to "sensitive data" question default to "not regulated" — legally dangerous for HIPAA/PCI scenarios.
+- Mobile "phone app" silently routes to React Native — PWA/responsive often cheaper and sufficient.
+- `templates/claude-settings.json` paths are 404 for new-project clone installs — Claude Code silently skips missing hooks, zero error, zero warning. Confirmed by `ls` test.
+- `templates/references-platform.md` doesn't exist; 80% of custom templates unusable for platform-choice outcomes.
+
+Design heuristic captured in user philosophy memory: "if AI can do good autonomously, it can do great with guidance." Gaps that cause silent wrong outcomes without human intervention are higher priority than gaps that merely produce suboptimal outcomes human can steer through. This shaped Step 31 scope.
+
+Fixes (7 items):
+
+1. **`templates/references-platform.md` (new file, ~80 lines).** Structure proposed by the Shopify-persona agent: Project, Build Approach, Platform, Why {platform}, Decisions Log, Configuration Checklist, Applicable Conventions, Out-of-Scope Systems, Convention Overrides, Open Questions. For the "user picked Shopify/WordPress/Blueprint" outcome.
+
+2. **`templates/claude-settings.json` → two named variants.** Split into `claude-settings.injected.json` (paths include `archetype/` segment, for after `inject.sh`) and `claude-settings.root.json` (no `archetype/` prefix, for new-project clone). Removed the ambiguous single file. `bootstrap/hooks/README.md` updated to point at the right one by install method.
+
+3. **Vague sensitive-data default rule.** ONBOARD.md now instructs: if user answers Group 5 (sensitive data) with "I dunno" or equivalent vague answer, default to "assume regulated" and surface the assumption. Legal-risk direction is the safe default.
+
+4. **Mobile disambiguation rule.** ONBOARD.md Group 2 now requires an explicit follow-up when user says "phone app": native (App Store), PWA (installable web), or responsive web. Framework no longer silently picks React Native.
+
+5. **Convention #0 Blueprint → SimplePractice.** Blueprint is measurement-based-care-centric, not generic document-sharing; SimplePractice is the industry-standard HIPAA therapy platform. Wording polish in convention #0.
+
+6. **Learning-project discovery question.** New Group 1 sub-question: "Is this a product to ship, or a project to learn a technology?" If learning, platform-vs-custom research is bypassed — custom IS the point. But scale-vs-cost still matters (learning K8s on a $80/mo EKS cluster is costly; kind/minikube locally is free).
+
+7. **Step 4 platform branch.** Explicit "For platform choice" subsection at Step 4 start. Previously only a one-line redirect from Step 3.
+
+Deferred again:
+- Mid-discovery summary checkpoint (low-leverage relative to cost)
+- Hard-stop for scale mismatch (learning-project question addresses the common case)
+- VERSION-LOG Type field for platform choice (cosmetic)
+- Conventions.md lookup table "Platform-only project" row (cosmetic)
+
 ## 2026-04-17 (Step 30) — Bootstrap audit fixes
 
 Trigger: 5-agent audit of framework bootstrap (3 plan-only agents + 2 real execution agents on `/tmp/archetype-test-therapy/` and `/tmp/archetype-test-blog/`). All 5 converged on the same structural defects. Real-run blog agent generated EKS + Redis + Postgres + ArgoCD + Prometheus for a 5-reader personal blog because the framework gave it license to fold. Real-run therapy agent barely recovered a HIPAA-appropriate platform choice (Blueprint) because Step 3 research saved it — but Step 2's compliance branch would have routed a solo $0-budget therapist straight to AWS Cognito+RDS+IaC if a less-careful AI had followed it literally.

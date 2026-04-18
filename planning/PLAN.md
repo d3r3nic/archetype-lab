@@ -405,6 +405,23 @@ Enforcement rules: 16 → 19. CLAUDE.md still under 50 lines.
 32. Meta-rule protects the rules: AI cannot modify CLAUDE.md or convention docs without permission.
 33. AI must search the codebase (not just feature-tree) before building anything.
 
+### Step 31: Round 2 — autonomous-baseline fixes
+
+Trigger: 4 more agent runs validated Step 30 works AND surfaced gaps where the autonomous outcome is still silently wrong. Core design heuristic: "if AI can do good autonomously, it can do great with guidance" — so fix what causes silent failures without human intervention, defer what produces suboptimal-but-steerable outcomes.
+
+Implemented:
+- references-platform.md template (platform-choice outcomes had no template)
+- claude-settings.json split into injected/root variants (silent hook failure fixed)
+- Vague sensitive-data answer → default-assume-regulated (legal safety)
+- Mobile disambiguation rule (no more silent React Native pick)
+- Blueprint → SimplePractice in convention #0 (accuracy)
+- Learning-project discovery question (validates "I want to build X to learn" as a legitimate bypass)
+- Step 4 platform branch (explicit instructions, not just one-liner redirect)
+
+Agent-run verification after Step 30:
+- Therapy-v2: cleanly reached platform choice (SimplePractice) without needing to override Step 2. Red Flag table fired. Convention #0 extended language gave cite-able grounds.
+- Blog-v2: pushback count 0→3. Same K8s stack generated BUT with explicit "Justified Override" rationale in References.md, cost quantified ($150-300/mo), and VERSION-LOG record of informed-consent. Framework no longer silently complies.
+
 ### Step 30: Bootstrap audit fixes — closing Step 3's flanks
 
 Trigger: 5-agent audit (3 plan + 2 real execution runs in /tmp/archetype-test-*). Framework scored 8/10 on bootstrap design but the real-run blog agent generated EKS+Redis+Postgres+ArgoCD for a 5-reader blog, and the therapy agent only barely recovered a platform-appropriate choice because Step 3 saved it.
