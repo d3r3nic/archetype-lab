@@ -405,6 +405,19 @@ Enforcement rules: 16 → 19. CLAUDE.md still under 50 lines.
 32. Meta-rule protects the rules: AI cannot modify CLAUDE.md or convention docs without permission.
 33. AI must search the codebase (not just feature-tree) before building anything.
 
+### Step 34: Scaffold phase — first audit and fix
+
+Trigger: first-ever Phase 2 agent test against realistic backend GraphQL profile. Agent built 20/20 systems but 6 were improvised (no SCAFFOLD step owned them). Identified 10 silent-failure risks.
+
+Implemented:
+- SCAFFOLD.md split by project shape (router + FRONTEND/BACKEND/MOBILE/PLATFORM variants)
+- Explicit convention mapping per step (no more "read the corresponding convention doc")
+- Operational verification gates per step (specific commands, specific exit criteria)
+- scaffolding/RED-FLAGS.md (new) — 10 known silent-failure patterns
+- scripts/validate-scaffold.sh (new) — machine-verifiable scaffold check
+- "Smoke-test feature" requirement as scaffold exit gate
+- References.md-to-scaffold handoff check as first step
+
 ### Step 33: Steering restructure — routing over content
 
 Trigger: user audit realigned framework direction. Previous steps were optimizing for minimalism; correct goal is steering. Zero expirable content is a hard rule. Compress, don't delete. Automation over discipline.

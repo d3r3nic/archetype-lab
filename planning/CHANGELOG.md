@@ -2,6 +2,54 @@
 
 Every improvement to the Archetype framework, why it was made, and what triggered it.
 
+## 2026-04-17 (Step 34) — Scaffold phase: first audit and fix
+
+Trigger: first-ever Phase 2 (Scaffold) agent test against a realistic backend GraphQL profile (72 files generated). All 20 foundational systems built, but 6 of them were "improvised" — no SCAFFOLD.md step owned them. Agent identified 10 concrete silent-failure risks.
+
+Core finding: Phase 2 is HIGHER-STAKES than Phase 1 (produces production code, not docs) but has LESS scaffolding (231 lines vs 474+3-routed-docs). Inverted investment.
+
+Key gaps agent found:
+- SCAFFOLD.md is ~60% frontend-shaped (Theme, Routing, State, Components, Forms = 5 of 13 steps). Backend agents improvise 13 of 20 systems.
+- No steps for: middleware pipeline (B3), audit log SEPARATION from app log (#23+B4), rate limiting, idempotency (mutation-level), metrics, tenant isolation (the #1 B2B multi-tenant bug).
+- Verification is aspirational: "Verify it works" with no exit criteria, no command map. Careless agent ticks checklist without running anything.
+- No convention mapping per step. Backend B-conventions never named in step list.
+- Top silent-failure risks: skipped-by-interpretation ("[backend]" tag not strong), audit log conflated into app log (SOC 2 failure), middleware order wrong, tenant isolation in schema but not queries, env validation at runtime not startup, GraphQL persisted-queries forgotten, migrations auto-run in CI (B1 violation).
+
+Changes:
+
+**1. SCAFFOLD.md split by project shape (parallel to references-*.md pattern).**
+- `scaffolding/SCAFFOLD.md` becomes a router with shared preamble (read References.md compliance section first, general rules, verification philosophy, convention-mapping rule) + routing to shape-specific playbooks.
+- `scaffolding/SCAFFOLD-FRONTEND.md` (new) — frontend order: project setup, types, errors, theme, components/design-system, state, routing, forms, API client, testing, CI.
+- `scaffolding/SCAFFOLD-BACKEND.md` (new) — backend order: env validation, types, errors, app-log + audit-log (SEPARATE, explicit), db, cache, auth, authz, API server (REST or GraphQL branch), middleware pipeline (B3 order), rate limiting, idempotency, jobs, metrics, tenant isolation, testing, CI.
+- `scaffolding/SCAFFOLD-MOBILE.md` (new) — mobile order: native-module wrapping, offline-sync, push, code-signing, TestFlight/Play Console.
+- `scaffolding/SCAFFOLD-PLATFORM.md` (new) — platform-choice projects have no code scaffolding; they still need the non-code systems from the platform's config checklist.
+
+**2. Each scaffold doc names conventions inline.** Every step says "build per convention #N (path)". Agent no longer has to infer mappings.
+
+**3. Operational verification gates.**
+- Each step ends with "Verify: [specific command, specific exit criterion]" — not "verify it works".
+- `scripts/validate-scaffold.sh` (new) — machine-verifiable scaffold check. Gates: every system in feature-tree.md has a docs/systems/{name}.md, every foundational system path exists, specific anti-patterns absent (console.log in src/, raw axios/fetch imports in features, direct Prisma imports outside db wrapper, untyped escape hatches with no comment), env validation runs at startup (`loadEnv()` or equivalent called before server start).
+
+**4. scaffolding/RED-FLAGS.md (new).** Parallels bootstrap/RED-FLAGS.md. 10 known silent-failure patterns from agent #1:
+- Skipped-by-interpretation (frontend/backend tag not strong enough)
+- Checklist verification without execution
+- Audit log conflated into app log
+- Middleware pipeline order wrong
+- Rate limiting / idempotency forgotten
+- Tenant isolation in schema but not queries (CRITICAL for multi-tenant B2B)
+- Env validation at runtime not startup
+- Frontend step titles applied to backend
+- GraphQL persisted queries forgotten
+- Migrations auto-run in CI
+
+**5. "Smoke-test feature" requirement.** Agent #1 finding: scaffold can be "complete" with misconfigured wiring and nobody finds out until first real feature. New rule: scaffold ends with a minimal "health" or "ping" feature that uses every shared system, providing end-to-end integration proof.
+
+**6. References.md-to-scaffold handoff check.** First step of scaffold: read References.md compliance and foundational-systems sections; inventory every system before building. Missed systems = skipped systems.
+
+Zero new expirable content. All additions are categorical or routing pointers.
+
+Deferred: Phase 3 (Develop) and Phase 4 (Maintain) — next untested surfaces.
+
 ## 2026-04-17 (Step 33) — Steering restructure: routing over content
 
 Trigger: user audit of framework direction. Previous steps conflated minimalism with steering — proposed deletion when the correct move is compression + routing. Core principles realigned:
