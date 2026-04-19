@@ -22,6 +22,8 @@ You are working ON the framework, not WITH it.
 
 5. Conventions must be framework-agnostic. If you're writing "in React, do X" inside a convention doc, it's wrong. That belongs in References.md templates.
 
+5b. **Framework encodes character; project artifacts hold specifics.** The dist/ framework must not contain specific tool names as THE answer, specific API calls, version numbers, current pricing, or vendor product names as prescriptions. Those are specifics — they belong in bootstrapped project artifacts (References.md, feature-tree.md, conventions/overrides/, docs/features/, CLAUDE.md.additions), which are expirable and updated per project. Test: "if rolling back a specific tool mention leaves the direction UNCHANGED, it was a signal — keep it. If the AI now doesn't know what to do, it was a snippet — promote the intent, drop the snippet." Tools are the developer's toolbox; the framework teaches character.
+
 6. Keep every layer lean. If a file is getting long, it's probably mixing layers. Split it.
 
 7. Update ROADMAP.md after completing any phase or task.

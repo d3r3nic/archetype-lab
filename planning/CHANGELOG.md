@@ -2,6 +2,29 @@
 
 Every improvement to the Archetype framework, why it was made, and what triggered it.
 
+## 2026-04-19 (Step 44 — BUGS OPEN, factory fix deferred) — Bootstrap real-world use on headless-wp-next surfaced template/inspector mismatches
+
+Trigger: bootstrapping a new CMS website template (`~/Development4/templates/headless-wp-next/`, Headless WordPress + Next.js) exposed three mismatches between what Archetype's `templates/` files teach the AI to produce and what `scripts/pulse-inspect.sh` actually parses.
+
+**Bug 1 — feature-tree.md Foundational Systems column order.** Template at `dist/templates/feature-tree.md` uses `| System | Convention | Location | Status | Docs |` (no leading `#`). `pulse-inspect.sh` requires column 2 to be numeric (`^\|[[:space:]]*[0-9-]+\|`), else the row is skipped. Template's columns + inspector's column indices also don't align: inspector expects `# | Name | Convention | Location | Status`, template produces `System | Convention | Location | Status | Docs`. Result: standard template → 0 systems parsed. Agents that add a `#` column produce parseable data but with shifted field labels.
+
+**Bug 2 — feature-tree.md Features column order.** Inspector expects `$3=name, $4=location, $5=routes, $6=systemsUsed`, meaning columns must be `<col1> | Feature | Location | Routes | Systems Used | ...`. Template ships `| Feature | Route(s) | Uses Systems | Status | Docs |` — column positions don't match. Inspector's header-skip checks (`c3 = "Feature"` or `"#"`) also require a leading sentinel column the template doesn't have.
+
+**Bug 3 — References.md Project + Tech Stack parseability.** Inspector greps `^- Name:`, `^- Purpose`, `^- Stage:` (leading dash bullets) and treats each `- Key: Value` line in Tech Stack as a key/value pair. The reference templates (`references-frontend.md` etc.) use headings + plain `Key: Value` lines without dashes in some generated examples, so parsing returns empty strings.
+
+**Scope of impact.** Any project bootstrapped from the templates as-is will have partial or empty pulse output. Earlier tests on game-test passed because its feature-tree happened to have a `#` column added by hand. The bugs are real and latent.
+
+**Workaround applied to headless-wp-next (not a framework fix).** Rewrote the project's feature-tree Systems table to `# | Name | Convention | Location | Status | Notes`, Features table to `# | Feature | Location | Routes | Systems Used | Status | Docs`, and References.md Project + Tech Stack sections to `- Key: Value` bullets. Post-fix: 27 systems, 9 features, 13 tech-stack items, drift reported, project header populated.
+
+**Framework fix (deferred to next factory session).** Options:
+- **A**: Update `dist/templates/feature-tree.md` + `dist/templates/references-*.md` to match the inspector's expected columns exactly. One-way change; inspector stays as-is.
+- **B**: Make `pulse-inspect.sh` tolerate both column orders (detect header row, infer layout). More robust but heavier code.
+- **C**: Define the columns once in a shared doc + enforce via `validate-framework.sh`.
+
+Recommendation: A + C. Update templates to be parser-compatible; add a validator check that fails if template column order ever drifts from inspector. Simpler than B and prevents regression.
+
+**Also logged.** Two smaller bugs: (i) pulse-inspect numeric check rejects `**27**` (bold number); should strip asterisks before matching. (ii) Features header-skip check only fires when column 3 is literally `"Feature"` — breaks if projects rename the header.
+
 ## 2026-04-17 (Step 43) — Pulse Monitor v2: static drift detection
 
 Extends `pulse-inspect.sh` to scan actual filesystem (`src/features/*/`, `src/shared/*/`) and diff against declared state in feature-tree.md. Emits `drift` field in `.pulse-state.json` with `declaredButMissing` + `actualButUndeclared` arrays per section. UI renders a Drift section that hides when clean.
