@@ -2,7 +2,7 @@
 
 Every improvement to the Archetype framework, why it was made, and what triggered it.
 
-## 2026-04-19 (Step 44 — BUGS OPEN, factory fix deferred) — Bootstrap real-world use on headless-wp-next surfaced template/inspector mismatches
+## 2026-04-19 (Step 44 IMPLEMENTED) — Bootstrap real-world use on headless-wp-next surfaced template/inspector mismatches; factory fixed
 
 Trigger: bootstrapping a new CMS website template (`~/Development4/templates/headless-wp-next/`, Headless WordPress + Next.js) exposed three mismatches between what Archetype's `templates/` files teach the AI to produce and what `scripts/pulse-inspect.sh` actually parses.
 
@@ -16,14 +16,16 @@ Trigger: bootstrapping a new CMS website template (`~/Development4/templates/hea
 
 **Workaround applied to headless-wp-next (not a framework fix).** Rewrote the project's feature-tree Systems table to `# | Name | Convention | Location | Status | Notes`, Features table to `# | Feature | Location | Routes | Systems Used | Status | Docs`, and References.md Project + Tech Stack sections to `- Key: Value` bullets. Post-fix: 27 systems, 9 features, 13 tech-stack items, drift reported, project header populated.
 
-**Framework fix (deferred to next factory session).** Options:
-- **A**: Update `dist/templates/feature-tree.md` + `dist/templates/references-*.md` to match the inspector's expected columns exactly. One-way change; inspector stays as-is.
-- **B**: Make `pulse-inspect.sh` tolerate both column orders (detect header row, infer layout). More robust but heavier code.
-- **C**: Define the columns once in a shared doc + enforce via `validate-framework.sh`.
+**Framework fix shipped (A + B-lite + C):**
 
-Recommendation: A + C. Update templates to be parser-compatible; add a validator check that fails if template column order ever drifts from inspector. Simpler than B and prevents regression.
+- `dist/templates/feature-tree.md` — Systems table is now `| # | Name | Convention | Location | Status | Docs |`. Features table is now `| # | Feature | Location | Routes | Systems Used | Status | Docs |`. Both tables carry a "column order is contract" note pointing at `pulse-inspect.sh`. Row 15 template-seeded as Pulse Monitor (#26) so bootstraps don't forget it.
+- `dist/templates/references-frontend.md` / `references-backend.md` / `references-mobile.md` — Project and Tech Stack sections now use `- Key: Value` bullets with a brief explanatory note. `references-platform.md` already used bullets.
+- `dist/scripts/pulse-inspect.sh` — all 5 row-processing loops (Systems table, Features table, Systems subgraph, Features subgraph, Systems drift, Features drift) strip markdown bold (`**`) before numeric/column checks. Features header-skip now tolerates `""|"Feature"|"Name"|"#"` instead of only `"Feature"` and `"#"`.
+- `dist/scripts/validate-framework.sh` — new Group 7 "Templates ↔ pulse-inspect parse contract" enforces column order in `feature-tree.md` and bullet format in each `references-*.md`. Catches regressions at `validate-framework` time.
 
-**Also logged.** Two smaller bugs: (i) pulse-inspect numeric check rejects `**27**` (bold number); should strip asterisks before matching. (ii) Features header-skip check only fires when column 3 is literally `"Feature"` — breaks if projects rename the header.
+Verified locally: `validate-framework.sh` → 0 errors / 0 warnings across all 7 groups. Re-ran `pulse-inspect.sh` on `headless-wp-next` post-propagation → project header populated, 27 systems incl. Pulse Monitor, 9 features, 13 tech-stack items, drift reported.
+
+No backwards-compatibility shim: old projects (game-test etc.) keep their existing feature-tree.md. Projects that hand-added `#` columns already match the new format; projects on the old template can migrate at their own pace. The inspector changes are pure tolerances (strip bold + extra header-skip values), so nothing that parsed before will break.
 
 ## 2026-04-17 (Step 43) — Pulse Monitor v2: static drift detection
 
