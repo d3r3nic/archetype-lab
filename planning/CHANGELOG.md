@@ -2,6 +2,27 @@
 
 Every improvement to the Archetype framework, why it was made, and what triggered it.
 
+## 2026-04-19 (Step 45) — Framework folder is read-only from a project's perspective
+
+Trigger: the developer articulated the mental model — `archetype/` is a discipline library (conventions + phase playbooks + scripts + templates); projects are the ONLY place the AI writes to. The framework is referenced, not mutated. Under the previous inject/update scripts, three per-project artifacts were being created INSIDE `archetype/`: `VERSION-LOG.md`, `FRAMEWORK-SOURCE.md`, and empty `docs/systems/` + `docs/features/` stubs. Safe enough for one-project-one-framework layouts, but the `templates/archetype/` sibling-framework-for-many-templates pattern exposed the leak: one template's bootstrap was polluting the framework folder shared by all.
+
+**Changes:**
+
+- `dist/inject.sh` — writes `VERSION-LOG.md` to project root (not `$DEST`). Creates `docs/systems/` and `docs/features/` at project root. `FRAMEWORK-SOURCE.md` is no longer created at all (its fields all duplicate `VERSION-LOG.md`). Idempotent: skips if the files already exist.
+- `dist/update.sh` — new Step 7 migrates legacy layouts: any `archetype/VERSION-LOG.md` is moved to project root, any `archetype/FRAMEWORK-SOURCE.md` is deleted, any empty `archetype/docs/` tree is removed. Step 8 (version-log append) reads/writes at project root. Existing projects get auto-migrated on their next `./update.sh`.
+- `dist/scripts/validate-framework.sh` — new Group 8 "No project artifacts inside the framework folder" fails if `VERSION-LOG.md`, `FRAMEWORK-SOURCE.md`, `References.md`, `feature-tree.md`, or `docs/` is found at framework root. Prevents regressions + surfaces not-yet-migrated projects when the validator is run from their archetype/.
+
+**Migrated live state of `~/Development4/templates/archetype/`** manually to match: moved its `VERSION-LOG.md` to `templates/headless-wp-next/VERSION-LOG.md`, deleted `FRAMEWORK-SOURCE.md` and `docs/` (empty).
+
+**Verified:** validate-framework.sh → 0 errors, 0 warnings across all 8 groups.
+
+**Behavioral outcome.** Post-bootstrap, the AI only enters the framework folder to:
+1. Look up a convention not yet promoted into the project
+2. Run `update.sh` for framework/security updates
+3. Bootstrap a NEW project/service alongside this one (e.g., `templates/billing-api/` as a sibling)
+
+All writes land in the project. The framework is read-mostly-by-AI, write-only-by-update.sh (self-updating from upstream).
+
 ## 2026-04-19 (Step 44 IMPLEMENTED) — Bootstrap real-world use on headless-wp-next surfaced template/inspector mismatches; factory fixed
 
 Trigger: bootstrapping a new CMS website template (`~/Development4/templates/headless-wp-next/`, Headless WordPress + Next.js) exposed three mismatches between what Archetype's `templates/` files teach the AI to produce and what `scripts/pulse-inspect.sh` actually parses.
