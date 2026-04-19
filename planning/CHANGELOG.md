@@ -2,6 +2,24 @@
 
 Every improvement to the Archetype framework, why it was made, and what triggered it.
 
+## 2026-04-19 (Step 49) — Bootstrap learns the TEMPLATE vs PRODUCT distinction
+
+Trigger: while scaffolding `headless-wp-next` (a reusable Next+WP template), the AI picked Figma as the Design Artifact tool during a Step 46 audit. Developer correctly pushed back: the template itself has no brand, no visual identity, no designer — it's a starter kit whose audience is developers. Design tooling belongs to the DOWNSTREAM projects that fork/install from it. The framework was blurring this distinction, so every template-shaped bootstrap would hit the same trap.
+
+The concept is orthogonal to existing shapes (frontend/backend/mobile/platform) and to individual conventions (#22 Design System, #27 Design Foundation). A template or a product can still use any shape and both conventions. The difference is BOOTSTRAP OUTPUT: templates defer visual/brand decisions to downstream projects; products commit them.
+
+Changes:
+- `bootstrap/ONBOARD.md` Group 1 — new question: "Is this a TEMPLATE or a PRODUCT?" with one paragraph defining both.
+- `bootstrap/ONBOARD.md` — new "Template vs product" routing table listing concrete divergences: Stage value, Design Artifact section, new `## Downstream Projects` section (template-only), `@scope/*` neutral-token discipline, feature-tree row classification, `VERSION-LOG.md` `Type:` value.
+- `bootstrap/ONBOARD.md` Step 4 — generation process now branches: if TEMPLATE, don't research design tooling or invent visual identity; apply the divergence rules; if PRODUCT, current flow (unchanged).
+- `bootstrap/ONBOARD.md` Step 6 — `VERSION-LOG.md` `Type:` now takes `template | product | existing-project-migration` (was `new / existing`). Clarified that VERSION-LOG lives at project root (per Step 45), not archetype/.
+
+No new template files — the References.md + feature-tree.md existing templates are adequate; AI applies the divergence rules conditionally.
+
+No validator change — the distinction is project-level, not framework-internal. Framework validator still green (8 groups, 0 errors).
+
+Captures the lesson: orthogonal cross-cutting distinctions deserve framework-level acknowledgement, not per-project workarounds. This is the THIRD such cross-cutter in the framework (1: project shape — frontend/backend/mobile; 2: learning-intent — RED-FLAGS.md; 3: template-vs-product — this step).
+
 ## 2026-04-19 (Step 48) — pulse-inspect monorepo support
 
 Trigger: Phase 2 B1 scaffold on `headless-wp-next` produced a pnpm monorepo (`apps/reference-site` + `packages/*`). `pulse-inspect.sh` hardcoded `$PROJECT_ROOT/src/features` + `$PROJECT_ROOT/src/shared` as the only scan roots — monorepo layouts silently reported every declared system as `declaredButMissing`.
