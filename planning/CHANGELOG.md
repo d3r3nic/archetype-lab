@@ -2,6 +2,18 @@
 
 Every improvement to the Archetype framework, why it was made, and what triggered it.
 
+## 2026-04-17 (Step 43) — Pulse Monitor v2: static drift detection
+
+Extends `pulse-inspect.sh` to scan actual filesystem (`src/features/*/`, `src/shared/*/`) and diff against declared state in feature-tree.md. Emits `drift` field in `.pulse-state.json` with `declaredButMissing` + `actualButUndeclared` arrays per section. UI renders a Drift section that hides when clean.
+
+Data contract v1.1 → v2. Fuzzy matching (lowercased, non-alphanum normalized, substring-tolerant) to reduce false positives from naming-style differences.
+
+Convention #26 updated: v2 marked shipped; AI audit is explicitly a developer workflow (ad-hoc, read-only, human-triggered), not a framework service. `templates/pulse-monitor-spec.md` gained a "How to audit the pulse" section with a ready-to-paste prompt.
+
+No stack-specific parsing. No new scripts. No AI service. Tested against game-test — immediately surfaced real naming drift (features/sessions/ on disk vs record-session declared; logger/db/config dirs vs App logging/Database/Env validation declared names).
+
+Deferred (v3+, add on real-use signals): dependency drift, env-var drift, route drift, migration drift.
+
 ## 2026-04-17 (Step 42) — Pulse Monitor: visibility-first convention + base implementation
 
 Trigger: vibecoding blind-spot. AI agents silently add deps, features, utilities, env vars, migrations, routes. Developer lacks a single surface to see what was scaffolded, what framework was chosen, what architecture emerged. User pitched Terraform-style state visibility; refined to a "pulse monitor" scaffolded into each project. Framework encodes character (visibility-first); ships base implementation (language-agnostic inspector + vanilla UI); project customizes.
