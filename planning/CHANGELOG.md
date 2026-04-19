@@ -2,6 +2,20 @@
 
 Every improvement to the Archetype framework, why it was made, and what triggered it.
 
+## 2026-04-19 (Step 47) — Close the Step 46 pipeline leak: Design Artifact section in references templates + validator guard
+
+Trigger: developer asked whether Convention #27 had been propagated through the full pipeline (factory → framework → project) so that future bootstraps produce the expected artifacts automatically. Audit revealed: feature-tree template had the Design Foundation row, but `references-frontend.md` and `references-mobile.md` had no "Design Artifact" section, so a fresh bootstrap would still skip it or improvise the placement.
+
+Changes:
+- `dist/templates/references-frontend.md` — added `## Design Artifact` section (placed between Commands and Foundational Systems). Rule anchor + placeholder bullets for tool, location, token pipeline, update responsibility, UI-state checklist, and complementary-tools line.
+- `dist/templates/references-mobile.md` — added `## Design Artifact` with mobile-specific fields (platform parity, permission-prompt states).
+- `dist/templates/references-backend.md` / `references-platform.md` — NOT added. Backends/platforms without UI skip the section; if a backend project has admin dashboards or email templates that need design, the AI adds the section at bootstrap based on discovery.
+- `dist/scripts/validate-framework.sh` group 7 gained a check: the frontend + mobile templates must contain a `## Design Artifact` heading. Catches removal regressions.
+
+Ran validator → 8 groups, 0 errors, 0 warnings.
+
+Lesson captured: when adding a convention that touches bootstrap artifacts, the fix must cover convention doc + index + counts + templates + validator check. The four-layer pipeline means partial fixes re-surface as drift on the next project.
+
 ## 2026-04-19 (Step 46) — Convention #27 Design Foundation: design artifact is source of truth, AI consults not invents
 
 Trigger: the developer asked whether the framework has rules for UX/UI techniques, CSS system development sequence, design decks. Coverage audit: #04 (components), #06 (tokens/theming), #14 (accessibility), #22 (component library) cover the visual foundations once they're decided, but nothing governs the DESIGN DISCIPLINE: artifact exists, lives alongside code, AI reads it before UI work, AI asks instead of inventing when silent. Per the "character, not tools" principle, the convention prescribes the discipline and lets AI research current tooling (visual design tools, design-system-as-code, AI-driven design assistants like Claude Design) at bootstrap time.
