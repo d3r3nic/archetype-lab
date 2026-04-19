@@ -2,6 +2,16 @@
 
 Every improvement to the Archetype framework, why it was made, and what triggered it.
 
+## 2026-04-19 (Step 48) — pulse-inspect monorepo support
+
+Trigger: Phase 2 B1 scaffold on `headless-wp-next` produced a pnpm monorepo (`apps/reference-site` + `packages/*`). `pulse-inspect.sh` hardcoded `$PROJECT_ROOT/src/features` + `$PROJECT_ROOT/src/shared` as the only scan roots — monorepo layouts silently reported every declared system as `declaredButMissing`.
+
+Fix: `pulse-inspect.sh` drift scanner now also walks `$PROJECT_ROOT/apps/*/src/features` and `$PROJECT_ROOT/apps/*/src/shared`. Single-app layout still works (scans `$PROJECT_ROOT/src/*`). Extracted a `scan_dir()` helper to remove the duplicated while-read loops. Verified on `headless-wp-next` — dropping an `apps/reference-site/src/shared/env/` directory is now surfaced under `drift.foundationalSystems.actualButUndeclared` as expected.
+
+Does NOT introduce per-project configuration yet — the detection is based on well-known directory patterns (`apps/*/src/*`). If a project uses a different layout (e.g., `packages/*/src/*` for code), that's a future extension.
+
+Validator: no new check needed — behaviour is additive; single-app behaviour unchanged. All 8 groups still pass.
+
 ## 2026-04-19 (Step 47) — Close the Step 46 pipeline leak: Design Artifact section in references templates + validator guard
 
 Trigger: developer asked whether Convention #27 had been propagated through the full pipeline (factory → framework → project) so that future bootstraps produce the expected artifacts automatically. Audit revealed: feature-tree template had the Design Foundation row, but `references-frontend.md` and `references-mobile.md` had no "Design Artifact" section, so a fresh bootstrap would still skip it or improvise the placement.
