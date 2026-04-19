@@ -2,6 +2,117 @@
 
 Every improvement to the Archetype framework, why it was made, and what triggered it.
 
+## 2026-04-17 (Step 42) — Pulse Monitor: visibility-first convention + base implementation
+
+Trigger: vibecoding blind-spot. AI agents silently add deps, features, utilities, env vars, migrations, routes. Developer lacks a single surface to see what was scaffolded, what framework was chosen, what architecture emerged. User pitched Terraform-style state visibility; refined to a "pulse monitor" scaffolded into each project. Framework encodes character (visibility-first); ships base implementation (language-agnostic inspector + vanilla UI); project customizes.
+
+**v1 scope:** read-only visualization of scaffolded state.
+- Project overview (from References.md Project section)
+- Tech stack (from References.md Tech Stack)
+- Foundational systems (from References.md + feature-tree.md Systems table)
+- Features (from feature-tree.md Features table)
+- Architecture / folder structure (from References.md Folder Structure)
+
+**v2 (deferred):** drift detection — declared-vs-actual for features, systems, deps, env, routes, migrations. Terraform-style plan.
+
+New artifacts (framework-level, durable):
+- `conventions/26-pulse-monitor.md` — principle (visibility is a first-class dev-time concern), rules (dev-only endpoint, data contract stable, UI expirable-replaceable), v1/v2 scope markers.
+- `scripts/pulse-inspect.sh` — language-agnostic inspector. Reads convention-mandated paths (References.md, feature-tree.md, package.json if present), emits `.pulse-state.json` conforming to the documented data contract. Same durability class as validate-*.sh.
+- `templates/pulse-ui/` — minimal vanilla HTML + CSS + JS. Zero runtime deps. Fetches `.pulse-state.json`, renders 5 sections. ~150 lines total. Deliberately un-fancy; meant to be redesigned per project.
+- `templates/pulse-monitor-spec.md` — durable per-project doc the scaffold drops at `docs/systems/pulse-monitor.md`. Documents sections, data contract, how to run, how to redesign the UI without breaking the contract.
+
+SCAFFOLD updates:
+- SCAFFOLD-BACKEND: pulse-monitor step added between smoke-test and final validator gate. Scaffold copies pulse-ui base into project's dev-static path, wires the route, creates the spec doc, runs inspector once to populate.
+- SCAFFOLD-FRONTEND: same pattern adapted for frontend (pulse-ui served via Vite dev-only route).
+- SCAFFOLD-MOBILE: note-level entry — mobile projects render the pulse via a dev-only screen or expose it via the same local JSON + a local browser page (Expo hosting).
+
+Convention count: 26 → 27. Conventions.md, backend/Conventions.md, README.md updated.
+
+"How to use it" documentation: the pulse-monitor-spec.md template (dropped into each project's docs/systems/) IS the how-to. Covers: running the inspector, viewing the UI, refreshing state, redesigning the UI while keeping the data contract.
+
+Zero expirable specifics in the framework. UI vanilla HTML/CSS/JS (same durability class as bash + static config). Inspector reads convention-mandated paths only.
+
+## 2026-04-17 (Step 41) — Cross-shape scaffold audits: frontend + mobile + platform first tests
+
+Trigger: 3 parallel agents tested SCAFFOLD-FRONTEND / SCAFFOLD-MOBILE / SCAFFOLD-PLATFORM against 3 real projects (game-test-client, game-test-mobile, game-test-vendor). Phase 1 was tested with 10+ parallel scenarios; Phases 2-4 had been backend-only until now. This round closed the parallel-scenarios gap for Phase 2.
+
+**Scaffold playbook clarity scores (% of systems built with clear playbook guidance, no improvisation):**
+- Backend v3: ~100% (converged)
+- Frontend v1: ~80% (9/11 clear, 2/11 improvised)
+- Mobile v1: ~70% (operational gaps in M2/M3/M6)
+- Platform v1: needs sector runbook templates; under-specified for non-technical owners
+
+**Validator false-positives (hit in 2 of 3 projects — BREAKING BUGS):**
+- Group 4 (regulated-data check) matches negative phrasing ("Regulated data: none", "Audit log: N/A", "not applicable") as compliance declaration, triggers false FAIL on correct configs.
+- Group 1 (docs/systems check) walks Features table rows in addition to Foundational Systems, flagging feature docs as missing system docs.
+- Group 3 (console-level output) doesn't recognize `if (__DEV__)` guards, flags intentional dev-only logging.
+
+**Silent-wrong patterns surfaced (not in existing RED-FLAGS):**
+- Provider composition order (frontend — Router outside AuthProvider silently breaks route guards)
+- Route guards forgotten on protected routes (no validator rule)
+- Env-inlining breaks tests (mobile — babel-preset-expo rewrites `process.env.EXPO_PUBLIC_*` at transform time; runtime env mutation in tests silently ignored)
+- `Object.setPrototypeOf` required for Error subclasses targeting transpiled output (mobile — `instanceof AppError` silently returns false)
+- Package peers drift from SDK expectations (mobile — `npm install` vs `expo install` for SDK-managed packages)
+
+Changes:
+
+**1. validate-scaffold.sh three false-positive fixes.**
+- Group 4: regulated-data check now recognizes negative phrasing. Regex tightened: matches "HIPAA|SOC2|PCI|GDPR" as standalone regime OR "regulated data" NOT followed by "none|N/A|not applicable|not required". Correct "no regulated data" configs no longer FAIL.
+- Group 1: docs/systems parser now stops at `## Features` header boundary. Only walks rows inside `## Foundational Systems` section. No more false warnings for feature doc paths.
+- Group 3: console-level-output check now ignores lines inside `if (__DEV__) { ... }` or `if (process.env.NODE_ENV === 'development') { ... }` blocks. Dev-only diagnostic logging no longer flagged.
+
+**2. scaffolding/RED-FLAGS.md — 5 cross-shape patterns added (#14-#18).**
+- #14 Provider composition order (silent wrong behavior when wrong order)
+- #15 Route guards forgotten on protected routes (silent missed auth)
+- #16 Env-inlining breaks tests (mobile-specific babel/vite transform trap)
+- #17 Class prototype broken on transpiled targets (`instanceof` silently false for Error subclasses)
+- #18 Package peers drift from SDK expectations (use SDK-aware installer, not generic npm install)
+
+**3. CLAUDE.md rule for Error-subclass prototype fix.**
+Added: "When `AppError` / error subclasses target transpiled output (mobile via babel-preset-expo, older browsers), constructor must call `Object.setPrototypeOf(this, new.target.prototype)` or `instanceof` checks silently fail."
+
+**4. SCAFFOLD-FRONTEND.md operational additions.**
+- Step 1: explicit `src/vite-env.d.ts` requirement with `/// <reference types="vite/client" />` content
+- Step 1: build script pattern — `"build": "tsc --noEmit && vite build"` (never `tsc -b`)
+- Step 2: theme-provider concrete shape (matchMedia + localStorage key + Tailwind `dark:` vs CSS-variables choice made explicit)
+- Step 4: ESLint `no-restricted-imports` wrapper-enforcement pattern (snippet inline)
+- Step 8: provider composition order inline — `ErrorBoundary > QueryClientProvider > ThemeProvider > AuthProvider > Router`
+- Step 10: jsdom + TanStack Query gotchas callout (retry-less test QueryClient, don't pass `signal` through fetch in tests)
+- Step 12: smoke-test concrete skeleton (settings page with theme toggle + auth status + one API call)
+
+**5. SCAFFOLD-MOBILE.md operational additions.**
+- M2: native-wrapper shape requirements (error model — throw `PermissionDeniedError`; type shape — module-level object with methods; timing — lazy on first use unless regulated)
+- M3: capability → iOS Info.plist key → Android manifest permission inline matrix for common capabilities (biometric, camera, haptic, location, push, etc.)
+- M6: eas.json structure requirements (three profiles: development/preview/production; required submit fields; "never commit real Apple IDs / team IDs — use EAS secrets")
+- M7: DoD checklist for the smoke-test feature (exercises auth + theme + native wrapper + API)
+- New callout: use `npx expo install` not `npm install` for Expo SDK packages (RED-FLAGS #18)
+- New callout: babel-preset-expo `EXPO_PUBLIC_*` inlining breaks runtime env mutation in tests (RED-FLAGS #16)
+
+**6. SCAFFOLD-PLATFORM.md operational additions + sector runbook templates.**
+- Step 6: reference sector-specific runbook templates (new: `templates/runbook-commerce.md`; others TBD per demand)
+- Step 7 rewritten: agent produces the smoke-test script in runbook; owner executes live; owner logs date + result in Decisions log. Resolves subject-of-action ambiguity.
+- Tier-gap handling paragraph added: if chosen tier lacks a Baseline Security item, log as deferred with tier-upgrade trigger (don't silently skip).
+- Security items tiered: `[required / recommended / if available]` tags added.
+- `planned` status added to feature-tree-platform.md legend.
+
+**7. templates/runbook-commerce.md (NEW, ~150 lines).** Sector-specific runbook skeleton for e-commerce platform projects (Shopify, WooCommerce, BigCommerce, etc.). Sections: custom domain, products, orders + fulfillment, refunds, customers + CCPA/GDPR, newsletter, password reset, data exports, launch-day checklist, incident response, "what I can't do from this runbook — escalate to developer" section. Parallels the structure Sarah's soap-store agent produced.
+
+**8. templates/references-platform.md [COMMERCE] checklist expansion (7 items).**
+- Inventory tracking on/off per product (Shopify defaults OFF — silent oversell)
+- Customer-account setting (guest-only / account-required / optional)
+- Low-stock alert threshold
+- Refund / return policy as its own bullet (not bundled with shipping)
+- Local pickup / local delivery flow (distinct from shipping rates)
+- Product weights (required for accurate USPS rate calculation)
+- Test-mode payment toggle (for smoke-test without real charges)
+
+Zero expirable content. Every addition categorical or pattern-based.
+
+Deferred to Step 42 if signal-supported:
+- Mobile-specific validator (`validate-scaffold-mobile.sh`)
+- Sector runbook templates for healthcare, booking, content (commerce is the most common; others follow same pattern)
+- Frontend UI-library-vs-thin-wrappers decision branch in SCAFFOLD-FRONTEND Step 4 (operational but nuanced)
+
 ## 2026-04-17 (Step 40) — Phase 4 convergence (v2) + two validator fixes
 
 Trigger: Phase 4 v2 verified Step 39 parity fixes. Agent verdict: "Phase 4 has converged to parity with Phases 1-3." 2 red flags fired during cycle (both caught):

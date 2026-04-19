@@ -405,6 +405,28 @@ Enforcement rules: 16 → 19. CLAUDE.md still under 50 lines.
 32. Meta-rule protects the rules: AI cannot modify CLAUDE.md or convention docs without permission.
 33. AI must search the codebase (not just feature-tree) before building anything.
 
+### Step 41: Cross-shape scaffold audits — frontend/mobile/platform first tests
+
+Trigger: 3 parallel agents tested all non-backend scaffold playbooks against real projects. Phase 2 had been backend-only until now. This round closed the parallel-scenarios gap.
+
+Implemented:
+- 3 validator false-positive fixes (regulated-data negative phrasing, docs/systems walking Features rows, console.warn in __DEV__ blocks)
+- 5 new RED-FLAGS (#14-#18): provider order, route guards, env-inlining, class prototype, package peer drift
+- CLAUDE.md rule: Object.setPrototypeOf for transpiled Error subclasses
+- SCAFFOLD-FRONTEND operational additions (7 items)
+- SCAFFOLD-MOBILE operational additions (5 items)
+- SCAFFOLD-PLATFORM operational additions + Step 7 subject-of-action fix + tier-gap handling + planned status
+- templates/runbook-commerce.md (NEW sector runbook skeleton)
+- [COMMERCE] checklist expansion (7 items)
+
+Clarity scores after Step 41:
+- Backend v3: ~100%
+- Frontend v1: ~80% → expected ~95% post-Step-41
+- Mobile v1: ~70% → expected ~90% post-Step-41
+- Platform v1: improved by templated runbook + tier-gap handling
+
+Deferred: validate-scaffold-mobile.sh, sector runbooks for healthcare/booking/content.
+
 ### Step 40: Phase 4 convergence (v2) + two validator fixes
 
 Trigger: Phase 4 v2 converged. Agent verdict: "Phase 4 has converged to parity with Phases 1-3." Two validator fixes shipped for red flags that fired during the v2 cycle:
