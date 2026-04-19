@@ -2,6 +2,20 @@
 
 Every improvement to the Archetype framework, why it was made, and what triggered it.
 
+## 2026-04-19 (Step 46) — Convention #27 Design Foundation: design artifact is source of truth, AI consults not invents
+
+Trigger: the developer asked whether the framework has rules for UX/UI techniques, CSS system development sequence, design decks. Coverage audit: #04 (components), #06 (tokens/theming), #14 (accessibility), #22 (component library) cover the visual foundations once they're decided, but nothing governs the DESIGN DISCIPLINE: artifact exists, lives alongside code, AI reads it before UI work, AI asks instead of inventing when silent. Per the "character, not tools" principle, the convention prescribes the discipline and lets AI research current tooling (visual design tools, design-system-as-code, AI-driven design assistants like Claude Design) at bootstrap time.
+
+New convention at `dist/conventions/27-design-foundation.md` (~45 lines). Sections: Principle · Reusable System · Rules · Violations · Wrong vs Right · Research Notes. Zero tool names in the rules. The Research Notes section explicitly tells AI to survey the landscape at bootstrap time and document the choice in References.md; "tool choice is expirable; discipline is durable."
+
+Index updated: `Conventions.md` — quick-lookup gains two rows (UI component work cross-refs #27, plus a "Any UI design decision" row). Visual/Specialized section adds #27 under #22. All count references bumped 27 → 28: `Conventions.md`, `CLAUDE.md`, `README.md`, `bootstrap/ONBOARD.md`, `backend/Conventions.md`.
+
+`templates/feature-tree.md` grew one optional row: "Design Foundation | #27 | [link to artifact]". Projects delete if N/A (same pattern as other rows).
+
+Validator passes 8 groups, 0 errors. Count-check (group 2) auto-updates to 28.
+
+The rule in one line: **"AI consults the design artifact first. When silent, AI asks. AI never invents UX."**
+
 ## 2026-04-19 (Step 45) — Framework folder is read-only from a project's perspective
 
 Trigger: the developer articulated the mental model — `archetype/` is a discipline library (conventions + phase playbooks + scripts + templates); projects are the ONLY place the AI writes to. The framework is referenced, not mutated. Under the previous inject/update scripts, three per-project artifacts were being created INSIDE `archetype/`: `VERSION-LOG.md`, `FRAMEWORK-SOURCE.md`, and empty `docs/systems/` + `docs/features/` stubs. Safe enough for one-project-one-framework layouts, but the `templates/archetype/` sibling-framework-for-many-templates pattern exposed the leak: one template's bootstrap was polluting the framework folder shared by all.
