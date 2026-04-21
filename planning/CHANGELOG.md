@@ -2,6 +2,37 @@
 
 Every improvement to the Archetype framework, why it was made, and what triggered it.
 
+## 2026-04-21 (Step 50) — Battle-test promotion pass: template lessons → framework (+ root rule enforcing this forever)
+
+Trigger: while maintaining `headless-wp-next` (the first template built on Archetype), accumulated patterns that had never been promoted upstream — ESLint wrapper-boundary enforcement, pre-commit hook auto-install pattern, testing-library wiring shape, changesets/pack discipline for template projects, progressive-extraction feature pattern, symlinked-framework-bundler gotcha, token structural-vs-values distinction at each layer lifecycle moment, UI/UX-decisions-live-at-product-bootstrap timing rule. Each would have re-surfaced on the next template/product bootstrap.
+
+Also revealed a meta-gap: no RULE said "battle-test findings must promote upstream, never stay local." Downstream layers had been improving in isolation.
+
+Fixes in `dist/`:
+
+- `dist/scaffolding/SCAFFOLD-FRONTEND.md` Step 1 — enriched with: linter config must be real (not stubs), wrapper-boundary enforcement via linter's restricted-imports rule, pre-commit hook auto-install on fresh clone so forks inherit it without manual setup, monorepo template projects use workspace protocol + publish command + resolution-override mechanism for local tarball testing.
+- `dist/scaffolding/SCAFFOLD-FRONTEND.md` Step 10 — Testing wiring shape (test runner + DOM env + testing library + global setup file + network-level mocker + per-package config in monorepos). Tool-agnostic: says WHAT each slot does, not which tool goes in it.
+- `dist/scaffolding/SCAFFOLD-FRONTEND.md` — new section "feature-tree status discipline" (not-started → in-progress → implemented with path + test gate + docs/systems entry, no row left not-started after code ships) + new section "Monorepo template projects — extra lens" covering the template-shape extra distribution axis.
+- `dist/conventions/06-styling.md` — new section "Template vs product — tokens in each" distinguishing structural (template-level neutral primitives) from values (product-level brand overrides). References Step 49.
+- `dist/conventions/26-pulse-monitor.md` — monorepo scan support documented (single-app + monorepo both covered). New "Implementation gotchas (signals from battle-testing)" section with tool-agnostic framing of: strict-asset-tracing bundlers refusing external symlinks, refresh model, state file location.
+- `dist/conventions/27-design-foundation.md` — new section "Where in the project lifecycle UI/UX decisions happen" — timing rule: UI/UX is PRODUCT-BOOTSTRAP territory, not template-level, not framework-level. Prompts to "change a color" / "tweak a hover state" at framework or template level must be deflected.
+- `dist/META-BATTLE-TESTING.md` (new) — one-page explanation of the four-layer stack, downstream-flow vs upstream-flow, what belongs upstream vs what stays local (framework test: if rolling back a specific tool mention leaves the direction unchanged, it was a signal; if the AI wouldn't know what to do, it was a snippet), end-of-session promotion checklist. Reiterates Step 44–49 history as proof the pattern is live.
+
+Root-rule change in outer factory CLAUDE.md (`/Users/d3r3nic/Development2/ai-dev-framework/CLAUDE.md`):
+
+- New section "Battle-testing — downstream projects feed the factory." Six rules:
+  1. Nothing discovered downstream stays only downstream.
+  2. Every Step's opening paragraph names which downstream project surfaced it (pattern from Steps 44-49).
+  3. Fix lands at the RIGHT layer (convention vs playbook vs script vs template).
+  4. Product-level UI/UX decisions do NOT promote up — only the DISCIPLINE.
+  5. After every downstream-triggered Step: push factory → push framework → pull into active projects.
+  6. End-of-session audit: unpromoted local rules become stale the moment context clears.
+- Test: fresh AI + archetype-lab + archetype could rebuild the same template the same way with no re-discovery.
+
+Drift caught during the pass: initial promotion drafts had named specific tools (pnpm, Next.js, Turbopack, Vitest, MSW, Husky) as prescriptions, violating the framework's own "character not tools" rule (outer CLAUDE.md rule 5 + 5b). Caught by user review; rewritten tool-agnostic. Remaining illustrative mentions (e.g. "current equivalent of MSW", "husky + lint-staged (JS), pre-commit (Python)...") kept because they frame categories, not mandate a pick.
+
+Validator: `validate-framework.sh` still green (8 groups, 0 errors).
+
 ## 2026-04-19 (Step 49) — Bootstrap learns the TEMPLATE vs PRODUCT distinction
 
 Trigger: while scaffolding `headless-wp-next` (a reusable Next+WP template), the AI picked Figma as the Design Artifact tool during a Step 46 audit. Developer correctly pushed back: the template itself has no brand, no visual identity, no designer — it's a starter kit whose audience is developers. Design tooling belongs to the DOWNSTREAM projects that fork/install from it. The framework was blurring this distinction, so every template-shaped bootstrap would hit the same trap.
