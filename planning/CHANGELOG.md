@@ -2,6 +2,36 @@
 
 Every improvement to the Archetype framework, why it was made, and what triggered it.
 
+## 2026-04-21 (Step 51) — Global Site Config pattern promoted from Edgar (first customer site)
+
+Trigger: first real customer site (`~/Development4/customers/edgar/`, spawned from `headless-wp-next`) needed a clean way to manage site-wide content — name, nav, contact, brand marks, footer, meta — without hardcoding strings across components. Problem surfaced immediately during Edgar's Phase 1: editing a site title would require find-and-replace across N files. Unacceptable for a template whose design goal is "change one thing, it reflects everywhere."
+
+Framework had **convention #0 Reusability** for code ("build once, configure for context") but no corresponding pattern for CONTENT. Components happily hardcoded business strings because nothing in the framework said not to. Every CMS-driven consumer site would hit this.
+
+Fix at framework level:
+
+- `dist/scaffolding/SCAFFOLD-FRONTEND.md` — new **Step 1b — Global Site Config (content, not code)**. Says: one typed config module as single source of truth for site-wide business content; env-backed values flow through the env layer, not duplicated; editor-authored values come from the CMS at runtime; template projects ship the structure with placeholder values, product projects fill in values. Rules: if a string appears on more than one page, it MUST be in site config; components NEVER hardcode business strings. Verify by grep — zero hardcoded site name / tagline / nav labels in source.
+
+- Convention references: #0 Reusability (applied to content), #1 Project Setup (where env validation lives), #7 Types (the typed config module). No new convention — this is a scaffolding pattern that applies existing conventions.
+
+Fix at template level (deployed via git push to d3r3nic/archetype in the same pass):
+
+- Template reference-site gains `apps/reference-site/src/shared/site/config.ts` as the concrete pattern. Exports a `site` object with placeholder values (template is brand-neutral; product sites override). Layout reads from `site.*` — zero hardcoded business strings in reference-site.
+- `apps/reference-site/src/shared/env/schema.ts` gains `NEXT_PUBLIC_CONTACT_EMAIL` optional field so the config can reference env-backed public contact details.
+
+Edgar (downstream, documented for battle-test provenance):
+
+- `customers/edgar/src/shared/site/config.ts` — Edgar's values. Nav, CTA, brand marks, footer copy, metadata. Layout + home page consume it.
+- Content rule now enforced site-wide: changing `site.nav.primary` in one file rewires the header across every route.
+
+Tool-agnostic framing honored: SCAFFOLD-FRONTEND says "typed config module," not "TypeScript object in `src/shared/site/config.ts`." Signal not snippet — a consumer picking a non-TS stack applies the same discipline with their own conventions.
+
+Validator: `validate-framework.sh` still green (8 groups, 0 errors, 0 warnings).
+
+Build: reference-site green with new layout consuming site config. Edgar green with Edgar's config.
+
+Test: fresh AI reading the framework + CHANGELOG would know to scaffold a site config module on the next customer-site bootstrap — no re-discovery required.
+
 ## 2026-04-21 (Step 50) — Battle-test promotion pass: template lessons → framework (+ root rule enforcing this forever)
 
 Trigger: while maintaining `headless-wp-next` (the first template built on Archetype), accumulated patterns that had never been promoted upstream — ESLint wrapper-boundary enforcement, pre-commit hook auto-install pattern, testing-library wiring shape, changesets/pack discipline for template projects, progressive-extraction feature pattern, symlinked-framework-bundler gotcha, token structural-vs-values distinction at each layer lifecycle moment, UI/UX-decisions-live-at-product-bootstrap timing rule. Each would have re-surfaced on the next template/product bootstrap.
