@@ -1,43 +1,37 @@
-# Step 52 (pending) — Customer Onboarding & Deployment Automation
+# Step 52 — Customer Onboarding & Deployment Automation
 
-Trigger: Edgar's first manual Cloud Run deploy (2026-04-22) surfaced the full list of steps, IAM bindings, config files, and DNS work required per customer site. Several of those steps are ergonomic footguns that must be encoded in automation so subsequent customers don't re-discover them.
+Trigger: Edgar's first manual deploy (2026-04-22) surfaced the full sequence, IAM bindings, ignore-file requirements, env discipline, and ingress/DNS work required per customer. Encoded here so subsequent customers are one-command operations. See `planning/CHANGELOG.md` Step 52 for the narrative of findings.
 
-## Scope
+## Architecture bifurcates by billing mode
 
-One declarative spec per customer → one command → fully provisioned customer environment, code repo, CI/CD, custom domain, SSL.
+The original version of this spec assumed every customer gets their own hosting-platform project. That's correct for ONE of the two billing modes, not both.
+
+| Billing mode | Who pays the vendor bill | Service boundary | Ingress resources | Cost shape |
+|---|---|---|---|---|
+| **Reseller** | The framework consumer (you). Customer pays you via payment processor; you pay the vendor. | All customer services in a single **platform boundary** (one project/tenant under `internal/`). Per-customer cost tracked via resource labels + billing export. | **Shared** ingress: one LB + one static IP + one cert (multi-domain). Per-customer: backend-service + NEG + URL-map entry. | Flat ingress baseline + per-service runtime; amortizes over customer count. |
+| **Direct** | End-customer, with their own payment method on the vendor. | **Per-customer boundary** (one project per customer under `customers/<Name>/`). | Per-customer ingress: own LB + own static IP + own cert. | Each customer pays their own ingress baseline. Clean billing isolation; higher fixed cost per customer. |
+
+The script must branch on billing mode. Choosing reseller or direct is a business/finance decision, not a technical one. Both architectures are valid.
 
 ## Input: `customers/<name>.yaml`
 
-```yaml
-name: edgar
-subdomain: edgar                  # becomes edgar.makemyweb.site
-stack: nextjs                     # reserved — future multi-stack support
-
-gcp:
-  folder_parent: customers        # folder under org
-  project: edgar-prod
-  region: us-central1
-
+```
+name: <slug>
+subdomain: <slug>
+stack: nextjs                  # reserved for future multi-stack
 billing:
-  mode: reseller                  # or "direct"
-  master_billing_account: 01XXXX-YYYYYY-ZZZZZZ  # used if mode=reseller
-  customer_billing_account: null  # populated by customer form if mode=direct
-
+  mode: reseller               # or "direct"
+  master_account: <id>         # used when mode=reseller
+  customer_account: null       # populated by customer form when mode=direct
 repo:
-  github_org: d3r3nic
-  name: Edgar-website
-  branches:
-    main: dev
-    staging: staging
-    production: prod              # maps to unsuffixed Cloud Run service
-
+  github_org: <org>
+  name: <repo>
+  branches: { main: dev, staging: staging, production: prod }
 env:
-  NEXT_PUBLIC_WP_GRAPHQL_URL: https://cms.edgar.com/graphql
-  NEXT_PUBLIC_CONTACT_EMAIL: hello@edgar.com
-  NEXT_PUBLIC_WP_REST_URL: null   # optional — omit rather than empty-string
-  WP_ADMIN_TOKEN: null            # optional, goes into Secret Manager
-
-features:                         # dashboard-toggleable flags
+  NEXT_PUBLIC_WP_GRAPHQL_URL: <url>
+  NEXT_PUBLIC_CONTACT_EMAIL: <addr>
+  # Optional keys: COMMENT OUT rather than ship blank. Schema rejects empty strings.
+features:
   blog: true
   products: false
   auth: false
@@ -45,95 +39,92 @@ features:                         # dashboard-toggleable flags
   min_instances: 0
 ```
 
-## What `onboard.sh <customer.yaml>` must do
+## Reseller-mode pipeline
 
-Each step is idempotent — re-running after partial failure resumes correctly.
+### One-time platform setup (done for makemyweb.site 2026-04-22)
+- Folder for internal infra under the org.
+- Platform project hosting shared LB resources.
+- Billing linked to master payment account.
+- APIs enabled: compute, run, container builder, artifact registry, certificate manager, IAM.
+- IAM bindings:
+  - Org admin → project Owner (not auto-inherited on recent projects).
+  - Compute-default service agent → container-builder role (not auto-inherited on recent projects).
+- Reserved global static IP for the shared LB.
+- Shared URL map with per-customer host rules.
+- Shared managed multi-domain cert (up to ~100 domains per cert).
+- HTTPS target proxy + forwarding rule on the static IP's port 443.
 
-### 1. GCP provisioning
-- Create folder `customers/<Name>/` under org `makemyweb.site` (skip if exists)
-- Create projects: `<name>-prod`, `<name>-staging`, `<name>-dev` under folder
-- Link billing account (reseller master OR customer-supplied)
-- Enable APIs: `run`, `cloudbuild`, `artifactregistry`, `iam`, `secretmanager`
-- Grant IAM bindings (both are NOT auto-granted on post-2024 projects):
-  - Org admin → `roles/owner` on each project
-  - Compute default SA → `roles/cloudbuild.builds.builder`
+### Per-customer steps (script runs these, idempotent)
+1. Deploy Cloud Run service in the platform project, labeled `customer=<slug>`, wired with customer env vars.
+2. Create serverless NEG pointing at the Cloud Run service (same-project requirement).
+3. Create backend service referencing the NEG.
+4. Add `<subdomain>.<root-domain>` to the shared cert (update in place, or split into a new cert at the per-cert limit).
+5. Add host rule in the shared URL map: `<subdomain>.<root-domain>` → backend service.
+6. DNS: create an A record at the DNS provider pointing `<subdomain>.<root-domain>` → the shared LB's static IP, with the DNS provider's passthrough flag set (no CDN proxy in front of the managed cert's ACME handshake).
+7. Poll cert provisioning until the new domain's status is active.
+8. Smoke: request the final URL, assert a 200 and confirm routing.
 
-### 2. GitHub repo
-- Create from `headless-wp-next` template (Octokit)
-- Clone template's `apps/reference-site/` as initial content
-- Vendor latest `@template/*` tarballs into `vendor/template-packages/`
-- Rewrite `package.json` deps + `pnpm.overrides` to point at `file:./vendor/...`
-- Drop in `Dockerfile`, `.dockerignore`, `.gcloudignore` (already template-resident as of this Step)
-- Generate `.env.example` with customer's required keys filled, optional keys COMMENTED (not empty)
-- Create three branches: `main`, `staging`, `production`
+## Direct-mode pipeline
 
-### 3. Cloudflare DNS
-- Read zone ID for `makemyweb.site` from config
-- For each environment: create CNAME `<env>.<subdomain>.makemyweb.site → ghs.googlehosted.com`
-  - Prod is bare `<subdomain>.makemyweb.site`
-  - Staging is `staging.<subdomain>.makemyweb.site`
-  - Dev is `dev.<subdomain>.makemyweb.site`
-- **Critical**: `proxied: false` on every record. Cloudflare proxy breaks Cloud Run's ACME cert issuance.
-- One-time per root domain: ensure Search Console TXT verification exists. If not, create + verify.
+Same general shape, but every resource lives in a customer-owned project:
 
-### 4. Cloud Run + domain mapping
-- Initial deploy of each service (from the newly-seeded repo)
-- Create domain mappings (`gcloud beta run domain-mappings create`) for each env
-- Poll cert status until `CertificateProvisioned: True` (5–60 min typical)
+1. Create a folder under `customers/<Name>/` at the org.
+2. Create a project inside that folder.
+3. Link the END CUSTOMER's payment account.
+4. Enable APIs on the new project.
+5. Apply the two-binding IAM fixup (same as above; every new project needs it).
+6. Deploy Cloud Run service.
+7. Reserve a static IP IN THAT PROJECT.
+8. Build the per-customer LB: NEG → backend service → URL map → managed cert → HTTPS proxy → forwarding rule, all scoped to this project.
+9. DNS A record → this project's static IP.
+10. Cert poll + smoke.
 
-### 5. CI/CD triggers
-- Cloud Build trigger per branch:
-  - `main` → `<name>-dev` service
-  - `staging` → `<name>-staging` service
-  - `production` → `<name>` service (prod)
-- `cloudbuild.yaml` in repo defines: typecheck → lint → test → build → deploy
-- Substitutions: `$_SERVICE`, `$_ENV`, set per trigger
-
-### 6. Secrets
-- Any `WP_ADMIN_TOKEN` or similar → Cloud Secret Manager
-- Cloud Run service references secret, not env var value
-
-### 7. Output
-- Prints:
-  - Cloud Run URLs (`.run.app`)
-  - Custom domain URLs (may say "pending cert")
-  - GitHub repo URL
-  - Cloud Build console links per trigger
+Direct mode is a full duplicate of the reseller one-time setup, per customer. The trade is billing isolation in exchange for recurring ingress cost borne directly by the end-customer.
 
 ## Dependencies the script needs
 
-| Tool | Why |
+| Tool/credential | Why |
 |---|---|
-| `gcloud` CLI (authed as org admin) | All GCP operations |
-| Cloudflare API token (Zone:DNS:Edit scoped to `makemyweb.site`) | DNS records |
-| GitHub personal access token (repo create + branch protect) | Repo provisioning |
-| `yq` or equivalent | Parse customer YAML |
+| Vendor CLI (authenticated as org admin) | All provisioning calls. |
+| DNS provider API token (narrow scope: DNS edit on the root domain only) | Per-customer DNS record creation. |
+| Repo-host API token (create repo + initial commit from template) | Repo provisioning. |
+| YAML parser | Customer spec parsing. |
 
-Store tokens in a `.env` next to the script (gitignored) or in Cloud Secret Manager.
+Credentials should live in a protected off-repo location (e.g., `~/.makemyweb/credentials`, chmod 600) and be referenced by env var from the scripts.
 
-## Edgar's post-deploy gotchas (all must be covered by the script)
+## Edgar's battle-test findings (all covered by the pipeline)
 
-1. ✅ Two IAM bindings that aren't auto-granted — captured in step 1
-2. ✅ `.gcloudignore` required (distinct from `.dockerignore`) — template-resident
-3. ✅ Vitest setup files must be excluded from build context — template-resident
-4. ✅ `.env.example` must comment-out optional keys, not leave blank — template-resident
-5. ✅ Cloudflare CNAME must be `proxied: false` — captured in step 3
-6. ✅ Search Console domain verification distinct from Cloud Identity TXT — captured in step 3
-7. Local pre-deploy verification (`pnpm typecheck && build`) — encoded in `cloudbuild.yaml` so Cloud Build also catches it
+1. ✅ Two non-obvious IAM bindings required on every new project.
+2. ✅ Deploy-uploader and image-builder each have their own ignore file; author both.
+3. ✅ Deploy-context should also exclude test-harness config (vitest setup, etc.) or the framework's build-time typecheck fails on imports that were correctly stripped from the image.
+4. ✅ `.env.example` must not ship optional keys as blank strings.
+5. ✅ DNS records for shared-ingress customers point to the LB's static IP, not to vendor-hosted gateway hostnames.
+6. ✅ Vendor's preview-tier domain-mapping feature is NOT the current recommended path; production is LB-fronted.
+7. ✅ Local `typecheck → lint → test → build` chain should be encoded in the CI pipeline so remote builds never fail on errors a local pre-check would catch.
 
-## Promotion plan
+## Script shape (when implemented)
 
-1. Build `onboard.sh` against Edgar's manual run (parameterize from `edgar.yaml`).
-2. Add a second customer via `./onboard.sh customers/<new>.yaml` — confirm it runs unattended.
-3. Promote to framework:
-   - `dist/templates/deploy/nextjs/cloudbuild.yaml` (build pipeline)
-   - `dist/scaffolding/SCAFFOLD-DEPLOY.md` (phase doc if new)
-   - OR extend `dist/scaffolding/SCAFFOLD-FRONTEND.md` with a Deployment section
-4. Log Step 52 in CHANGELOG.md.
-5. Deploy update to existing projects via `update.sh`.
+```
+makemyweb-infra/
+├── customers/<slug>.yaml        # per-customer spec, committed
+├── scripts/
+│   ├── onboard.sh <slug>.yaml   # branches on billing mode; runs full pipeline
+│   ├── teardown.sh <slug>.yaml  # reverses it
+│   └── add-domain.sh            # cert update + URL-map entry + DNS only
+└── credentials/                 # off-repo, chmod 600
+```
 
 ## Out of scope for Step 52
 
-- Stripe-based reseller billing (future Step 53+): current reseller mode just uses master GCP billing account; customer invoicing happens out of band.
-- Multi-stack Docker templates (Django, .NET): Nextjs only for this Step. Stack field in YAML is reserved.
-- Dashboard UI: this Step ships the bash/script layer only. Dashboard sits on top (separate Step).
+- Dashboard UI wrapping the scripts (future Step 53).
+- Payment-processor integration for reseller invoicing (business-layer, not infra).
+- Multi-stack Docker templates beyond Next.js (future, when second template lands).
+- Automated migration of existing customer projects between modes.
+
+## Promotion plan once implemented
+
+1. Build `onboard.sh` against Edgar's reseller-mode spec; confirm it re-runs cleanly after any step.
+2. Provision a second customer end-to-end without human intervention beyond YAML editing.
+3. Promote the scripts to framework: they live at the template level (stack-specific) or in a new `dist/deploy/` folder, depending on where they end up being stack-agnostic vs stack-specific.
+4. Log promotion as a dated Step in `CHANGELOG.md`.
+5. Re-sync downstream projects via `archetype/update.sh`.

@@ -2,6 +2,49 @@
 
 Every improvement to the Archetype framework, why it was made, and what triggered it.
 
+## 2026-04-22 (Step 52) — Deployment + customer-onboarding discipline, battle-tested via Edgar's first live deploy
+
+Trigger: Edgar (first customer site, `~/Development4/customers/edgar/`) went from green-build code to a running HTTPS production URL in one session. Every non-obvious surface encountered in that journey represented a discipline the framework had failed to teach.
+
+Six findings, each generalizable beyond the specific vendor/stack used:
+
+1. **Build-context ignores are actor-specific.** The image builder and the deploy-source uploader may read different ignore files. Authoring only one silently lets the other upload things it shouldn't (slow, expensive, and sometimes breaks on exotic file metadata like pre-epoch timestamps). Discipline: when multiple actors stage build context, author each actor's ignore rules.
+
+2. **Local pre-deploy verification is non-negotiable.** Every error that surfaced at the remote build stage would have surfaced locally in under a minute. A deploy command that does not chain local `typecheck → lint → test → build` first burns remote compute on recoverable errors and pollutes the signal.
+
+3. **Env-schema must distinguish absent from empty.** Strict env validation that rejects empty strings is correct behavior. Shipping an example-env file that declares those keys as blanks is a trap — the consumer copies it, validation fails on first run, and the cause is non-obvious. Comment-out optional keys in example files; present them as "opt-in by uncommenting," not "set to something."
+
+4. **Ingress/cert pathway quality varies by vendor offering tier.** Preview or "limited GA" features may have materially worse reliability than production offerings. A deploy tutorial from a prior year may describe the then-primary path that is now preview-only. Always confirm current vendor docs before committing to an ingress shape.
+
+5. **Shared-ingress multi-tenancy may require single-project consolidation at the vendor's reference cert/backend resources.** Discovering this mid-build saved meaningful per-customer recurring cost but forced a bifurcation in the onboarding architecture: when the consumer pays the bill (reseller), services consolidate into a single platform boundary; when the end-customer pays the vendor directly, each gets their own boundary. Which shape applies depends on WHO pays, not how big the fleet is.
+
+6. **Vendor IAM defaults shift across epochs.** Projects created in an older era inherited broader default bindings that newer projects do not get. Deploy-time failures often trace to bindings that "used to be automatic." Automation must explicitly grant every binding a deploy actor needs, not assume inheritance.
+
+Fix at framework level (`dist/scaffolding/SCAFFOLD-FRONTEND.md` Step 11, generalized):
+
+- Author each actor's ignore surface when multiple actors stage build context.
+- Chain local verification into the deploy command; never deploy past a local red.
+- In env-schema, distinguish absent from empty. Example-env ships optional keys commented, not blank.
+- Confirm current vendor docs before committing to an ingress/cert path. Deprecated-but-available is a trap.
+- Treat IAM bindings a deploy actor needs as EXPLICIT in automation; inheritance is unreliable across vendor epochs.
+- When consolidating or isolating multi-tenant services, pick the shape based on WHO pays the vendor bill, not headcount or traffic.
+
+Fix at template level (headless-wp-next, concrete for this stack):
+
+- `apps/reference-site/` ships both `.dockerignore` and `.gcloudignore` — the image-builder and Cloud Run source-uploader each read their own file.
+- `.env.example` authored with optional keys commented, not blank. Matching comment explains why.
+- `Dockerfile` ships with build-time ARG shape so local vs runtime env can diverge.
+- `docs/CUSTOMER-SITE.md` updated with current Cloud Run + shared-Load-Balancer deploy path for reseller mode, and per-project-LB path for direct-billing mode. Old preview-tier domain-mapping instructions retired.
+
+Edgar (downstream, documented for battle-test provenance):
+
+- First real proof that the full chain factory → framework → template → product yields a running cert'd site on a customer domain.
+- Captured project-level deployment state in `References.md § Deployment`: live URL, service location, ingress shape, DNS record shape, credentials location. Concrete values at the product layer; disciplines at the framework layer.
+
+Planning doc `planning/STEP-52-DEPLOY-AUTOMATION.md` rewritten to reflect the billing-mode bifurcation (original version assumed per-customer projects universally; corrected to consolidated-platform for reseller, per-customer for direct).
+
+Test: a fresh AI reading framework + template + CHANGELOG on the next customer bootstrap would author both ignore surfaces, chain local verification into deploy, confirm current vendor ingress docs, and choose multi-tenant shape by billing mode — without re-discovering any of the above.
+
 ## 2026-04-21 (Step 51) — Global Site Config pattern promoted from Edgar (first customer site)
 
 Trigger: first real customer site (`~/Development4/customers/edgar/`, spawned from `headless-wp-next`) needed a clean way to manage site-wide content — name, nav, contact, brand marks, footer, meta — without hardcoding strings across components. Problem surfaced immediately during Edgar's Phase 1: editing a site title would require find-and-replace across N files. Unacceptable for a template whose design goal is "change one thing, it reflects everywhere."
