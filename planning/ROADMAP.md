@@ -68,3 +68,14 @@
 - [ ] Optional addon docs (A1 i18n, A2 Observability)
 - [ ] Scaffolding for existing projects (closing gaps, not building from scratch)
 - [ ] Backend project migration
+
+## Phase 8: Customer Deployment & Onboarding Automation (triggered by Edgar — 2026-04-22)
+- [ ] Step 52: one-command customer provisioning (spec at planning/STEP-52-DEPLOY-AUTOMATION.md)
+  - [ ] GCP folder/project/IAM/API provisioning (2 IAM bindings non-obvious)
+  - [ ] Billing modes: reseller (master account) + direct (customer's card)
+  - [ ] GitHub repo creation from template + tarball vendoring
+  - [ ] Cloudflare DNS automation (CNAME, proxy=false enforced)
+  - [ ] Cloud Run deploy + domain mapping + cert polling
+  - [ ] Cloud Build triggers per branch (main/staging/production → envs)
+  - [ ] Secret Manager wiring
+- [ ] Step 53: Local dashboard UI wrapping Step 52 (IAP-protected, Cloud Run service in `internal/` folder)
