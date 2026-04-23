@@ -2,6 +2,47 @@
 
 Every improvement to the Archetype framework, why it was made, and what triggered it.
 
+## 2026-04-23 (Step 53) — Operator-dashboard pattern: second product validates the template + surfaces async-server-component + SSE-stream + subprocess-registry disciplines
+
+Trigger: `makemyweb-dashboard` — a second product spawned from `headless-wp-next` to control the platform that hosts `Edgar`. Built in one session end-to-end: scaffold → UI primitives → 9-route app → onboarding pipeline wired to real bash scripts → real-GCP redeploy/teardown. Along the way, patterns emerged that generalize beyond this project and weren't yet encoded in the framework.
+
+Seven findings, each tool-agnostic:
+
+1. **A template fork is only as good as the "strip" pass.** When a template bakes in a specific consumer (e.g. WordPress-backed content), a fork that uses the SHELL of the template but not its primary consumer must delete the WP-shaped code AND its test stubs AND its example-env keys AND its Next.js transpile list. Missing any of these surfaces at the first build. The framework should tell the operator: *spawn, then run a grep for the consumer's namespace and remove every mention before the first build.*
+
+2. **Data source should be swappable at the resolution layer, not wired into pages.** A page that calls `listCustomers()` shouldn't know whether those came from a YAML file, a database, or an API. Encode this discipline: *a feature's `data.ts` is a resolution function; when the real source lands, only that file changes.* This pattern is what let the dashboard swap from hardcoded → YAML reader → (future) GCP API without touching any page.
+
+3. **Subprocess-fan-out pattern for long-running operations.** Any operator dashboard that triggers a long-running backend process (script, build, deploy) needs: (a) an in-memory registry keyed by operation target, (b) event replay for late subscribers, (c) TTL cleanup for finished runs, (d) SSE endpoint that subscribes. Generalizes beyond shell scripts to any async job.
+
+4. **Server-Sent Events over WebSocket as the default for one-way streaming.** SSE handles reconnection, works through most proxies, and needs no special client library. Reserve WebSockets for bidirectional. The framework should prefer SSE where only the server needs to push.
+
+5. **Destructive actions require type-target-to-confirm, not "Are you sure?".** Modal confirmations that require the operator to type the exact target name as the confirmation value are the right pattern for teardown / delete / drop operations. Encode it as a primitive pattern, not a UX opinion per project.
+
+6. **Async server components + explicit `force-dynamic` on data routes.** When a data source reads files or calls external APIs at request time, the page must opt out of static rendering. Static-by-default is a good default, but a data-driven dashboard must mark its routes dynamic to avoid stale builds.
+
+7. **Subprocess input sanitization is a framework concern.** User-supplied values that reach `spawn()` (even without a shell) should pass a safe-ident regex before invocation. Encode as a rule, not a per-project habit.
+
+Fix at framework level (additions to `dist/scaffolding/SCAFFOLD-FRONTEND.md` Step 6 API layer + Step 11a Deployment + new Step 11b subprocess ops):
+
+- "When a data source is expected to swap over the project's life (hardcoded → file → API → live SDK), put resolution behind a single function; pages consume the function, never the source directly."
+- "For operations that take seconds-to-minutes, build a subprocess/job registry with replay + SSE subscription. Don't assume a single client session; a reload must resume the stream."
+- "Pages with data from non-static sources opt into dynamic rendering explicitly."
+- "Destructive actions require a confirmation that can't be clicked past: either typing the target's own name, or a two-step reveal. 'Are you sure?' modals are a pattern to avoid."
+- "Any value leaving the app via `spawn()` / `exec()` / shell passes a safe-ident check first. Reject unsafe inputs at the boundary, not at use site."
+
+Fix at template level (`headless-wp-next`):
+
+- `docs/CUSTOMER-SITE.md`: note to spawners that forking the reference-site without the WP consumer requires a strip pass (remove `@template/cms-client` + `@template/blog` + `@template/products` + their routes + their test stubs + transpile list entries + .env.example keys). The dashboard's spawn proved this gap — a concrete walkthrough would have saved discovery time.
+- `apps/reference-site/src/features/customers` and `src/shared/backend/` patterns are examples of the resolution-layer + subprocess-registry disciplines in practice. Reference them in CUSTOMER-SITE.md as reference implementations once the dashboard is public (currently private — reference when it migrates).
+
+Dashboard (downstream, documented for battle-test provenance):
+
+- `~/Development4/makemyweb-dashboard/` — Next.js 16 App Router, all 9 phases shipped in one session. End-to-end wired to real GCP/Cloudflare via `~/Development4/makemyweb-infra/scripts/`.
+- Proved the spawn flow works for a non-customer-site product (internal tooling). Second validation of the template pattern.
+- Surfaced that reseller-mode services all live in ONE platform project — the original Step 52 spec's "per-customer project universally" assumption only holds for direct-mode.
+
+Test: a fresh AI building a THIRD product from the same template (e.g., a customer support tool) should now find: a strip-pass walkthrough in CUSTOMER-SITE.md, the resolution-layer pattern referenced in SCAFFOLD-FRONTEND, a subprocess-registry rule in SCAFFOLD's deployment section, and the destructive-confirmation pattern in the UI conventions. No re-discovery required.
+
 ## 2026-04-22 (Step 52) — Deployment + customer-onboarding discipline, battle-tested via Edgar's first live deploy
 
 Trigger: Edgar (first customer site, `~/Development4/customers/edgar/`) went from green-build code to a running HTTPS production URL in one session. Every non-obvious surface encountered in that journey represented a discipline the framework had failed to teach.
