@@ -2,6 +2,122 @@
 
 Every improvement to the Archetype framework, why it was made, and what triggered it.
 
+## 2026-04-26 (Step 55) — Public-website security round 2: cross-origin headers, robots/sitemap, observability stub, audit gate, Dependabot
+
+Trigger: Continuation of the same Edgar pre-feature audit that produced Step 54. After the foundational headers + spawn carry-forward landed, a tighter pass identified four more easy-wins for a public-facing brochure site that costs little now and would be expensive to retrofit later. None are Edgar-specific; all promote to the template.
+
+Four findings, two layers each:
+
+1. **Cross-Origin headers absent.** Step 54's headers covered CSP/HSTS/X-Frame/Referrer/Permissions but not COOP/CORP. COOP `same-origin` isolates the browsing context from cross-origin windows (Spectre + tabnabbing class attacks); CORP `same-site` permits subdomain sharing while blocking cross-site hot-linking. COEP intentionally omitted — would block cross-origin WP image embeds, which most CMS-backed sites need.
+   - **Template + Edgar**: appended both headers to `securityHeaders` in `next.config.ts`.
+
+2. **`robots.txt` + `sitemap.xml` not authored.** Without them, scrapers index whatever they find (including dev routes) and search engines don't discover content efficiently. Next 16 has native metadata routes (`src/app/robots.ts` + `src/app/sitemap.ts`); used those.
+   - **Env**: added required `NEXT_PUBLIC_SITE_URL` to env schema (Zod URL validator). Robots/sitemap need a canonical origin and the convention is no hardcoded URLs.
+   - **Site config**: exposed `site.url` reading from env so any feature needing a canonical link uses one source.
+   - **Template + Edgar**: identical `robots.ts` (allow `/`, disallow `/pulse` + `/api/`, point at sitemap) and `sitemap.ts` (static routes for `/`, `/blog`, `/products`; per-feature dynamic entries appended as features ship).
+   - **CI**: added `NEXT_PUBLIC_SITE_URL` dummy to template + Edgar workflow build steps.
+   - **`.env.example`**: added the new key in both repos.
+   - **Schema test fixtures**: updated to include the new key (template + Edgar).
+
+3. **No observability stub + no error boundaries at root.** Convention #25 marked observability "not started" in feature-tree. Production errors were silently lost (Cloud Run logs catch server side; client-side unhandled errors went nowhere). Wiring Sentry/PostHog can wait, but the **abstraction** can land now so feature code calls `reportError(...)` from day one and the SDK plugs in via `setReporter(...)` without app-code changes.
+   - **`src/shared/observability/index.ts`** (template + Edgar): pluggable reporter interface. Default reporter logs to console in dev, no-ops in prod. Includes a vitest test confirming the indirection works.
+   - **`src/app/error.tsx`** (template + Edgar): per-segment Next.js error boundary. Uses `useEffect` to call `reportError(error, { digest, scope: 'segment' })`. Token-styled minimal UI with a "try again" reset button.
+   - **`src/app/global-error.tsx`** (template + Edgar): root error boundary that replaces the whole layout when even the layout fails. Self-contained markup + inline styles (cannot rely on globals.css being loadable at this point — that's the whole point of global-error).
+
+4. **No supply-chain checks in CI; no automated dep updates.** Convention #15 names dependency scanning; CI didn't run any. Vendored `@template/*` tarballs + transitive postcss/etc. all skated through.
+   - **`.github/workflows/ci.yml`** (template + Edgar): added `pnpm audit --prod --audit-level=high` step between install and format-check. Moderate vulns warn but don't block; high+ block the build.
+   - **`.github/dependabot.yml`** (template root + Edgar): weekly npm updates grouped by major (Next/React together, tooling like ESLint/Prettier/TypeScript/Vitest together) and weekly github-actions updates. PR limit 10 to avoid noise.
+   - **Spawn doc**: updated `docs/CUSTOMER-SITE.md` step 2a to also copy `dependabot.yml` from template root.
+
+Why these four are one Step, not four: same audit, same layer (template + Edgar simultaneously), same lesson — **public-website disciplines that cost little when laid down before features should not wait for a feature to demand them.**
+
+What's parked for later passes:
+
+- **Strict CSP via nonces** (still parked from Step 54).
+- **Cloud Armor / WAF policy** at the LB. GCP-side action; one-time per project; not in any repo.
+- **CAA DNS record** (limit which CAs can issue certs for the domain). Cloudflare-side.
+- **HSTS preload submission** to hstspreload.org. Header is set; domain not yet on the list.
+- **WordPress-side hardening** — bigger than Edgar's repo: WPGraphQL mutation allowlist, admin URL hardening, plugin CVE scanning, brute-force protection, backup/restore plan. Tracked separately from Edgar's foundation.
+- **Bot challenge + rate limit + CSRF + privacy policy + cookie banner** — all bundled with the Contact-form feature ship.
+- **Auth/authz hardening** — bundled with Account/Cart features.
+
+Files changed:
+
+Edgar (`~/Development4/customers/edgar/`):
+
+- `next.config.ts` — appended COOP + CORP to security headers
+- `src/app/robots.ts` — new
+- `src/app/sitemap.ts` — new
+- `src/shared/env/schema.ts` — added `NEXT_PUBLIC_SITE_URL` (required URL)
+- `src/shared/env/schema.test.ts` — fixture updated
+- `src/shared/site/config.ts` — exposed `site.url`
+- `src/shared/observability/index.ts` + `index.test.ts` — new
+- `src/app/error.tsx` + `src/app/global-error.tsx` — new
+- `.env.example` + `.env.local` — added `NEXT_PUBLIC_SITE_URL`
+- `.github/workflows/ci.yml` — added audit step + SITE_URL build dummy
+- `.github/dependabot.yml` — new
+
+Template (`~/Development4/templates/headless-wp-next/`):
+
+- `apps/reference-site/next.config.ts` — COOP + CORP
+- `apps/reference-site/src/app/robots.ts` + `sitemap.ts` — new
+- `apps/reference-site/src/shared/env/schema.ts` + `schema.test.ts` — added SITE_URL
+- `apps/reference-site/src/shared/site/config.ts` — exposed `site.url`
+- `apps/reference-site/src/shared/observability/index.ts` + `index.test.ts` — new
+- `apps/reference-site/src/app/error.tsx` + `global-error.tsx` — new
+- `apps/reference-site/.env.example` — added SITE_URL key
+- `.github/workflows/ci.yml` — audit step + SITE_URL build dummy
+- `.github/dependabot.yml` — new
+- `docs/CUSTOMER-SITE.md` — spawn step 2a now copies `dependabot.yml`
+
+Verification:
+
+- Edgar: full chain (`pnpm format:check && pnpm typecheck && pnpm lint && pnpm test && pnpm build`) green; build emits `/robots.txt` + `/sitemap.xml`. `pnpm audit --prod --audit-level=high` exits 0 (1 moderate postcss CVE outstanding via Next; below gate).
+- Template `apps/reference-site`: typecheck, lint, 20 tests, build all green; routes match Edgar's.
+
+## 2026-04-26 (Step 54) — Security headers + dev-tooling spawn carry-forward: Edgar pre-feature audit surfaces template + spawn-procedure gaps
+
+Trigger: Before starting Edgar's Portfolio feature, ran a production-readiness audit on the foundation. Three blockers surfaced — none of them Edgar-specific, all of them gaps that any customer site spawned from `headless-wp-next` would inherit.
+
+Three findings, two layers each:
+
+1. **Security headers absent at the template app level.** `apps/reference-site/next.config.ts` had `output`/`transpilePackages` only — no `headers()` export. Convention #23 already says "configure security headers globally (CSP, HSTS, X-Frame-Options, X-Content-Type-Options, Referrer-Policy)" but the template's reference site didn't model it. Customer sites spawned by `cp -R apps/reference-site` therefore start without any security headers and have to discover the gap by audit.
+   - **Fix at template**: added a baseline `headers()` block to `apps/reference-site/next.config.ts`. CSP origin is read from env (`NEXT_PUBLIC_WP_GRAPHQL_URL`), not hardcoded. Known relaxations (`'unsafe-inline'` for script + style required by Next.js App Router hydration + Tailwind) are commented inline with a migration path to nonce-based CSP. HSTS, X-Content-Type-Options, X-Frame-Options DENY, Referrer-Policy strict-origin-when-cross-origin, Permissions-Policy lockdown all included.
+   - **Fix at product (Edgar)**: same block applied to `~/Development4/customers/edgar/next.config.ts`. Verified via `pnpm typecheck && pnpm build`.
+   - **Framework convention #23**: no edit needed — the convention already names the directive set; the gap was implementation-side, not doctrine-side.
+
+2. **Spawn-procedure carry-forward gap: `.husky/`, prettier configs, `.github/workflows/ci.yml` live at template ROOT, not inside `apps/reference-site/`.** The `cp -R apps/reference-site/.` step in `docs/CUSTOMER-SITE.md` therefore silently drops them. Edgar (the first real customer site) was missing all three: no pre-commit hook, no formatter config, no CI workflow. Convention #25 (Automated Enforcement) was effectively doc-only at the customer-site layer until pulled in by hand.
+   - **Fix at template**: added a numbered `2a` + `2b` step to `docs/CUSTOMER-SITE.md` listing exactly which template-root files to copy (`/.husky`, `.lintstagedrc.json`, `.prettierrc.json`, `.prettierignore`, `.github/workflows/ci.yml`) and which devDeps + scripts to add (`husky`, `lint-staged`, `prettier`, `prepare`, `format`, `format:check`). Also notes the `pnpm -r` flag must be stripped from the copied `ci.yml` since customer sites are single-package, not workspaces.
+   - **Fix at product (Edgar)**: husky + lint-staged + prettier installed, `.husky/pre-commit` runs `pnpm exec lint-staged`, `.lintstagedrc.json` mirrors template (eslint --max-warnings=0 + prettier on `*.{ts,tsx}`, prettier-only on json/md/css/yaml), `.prettierrc.json` + `.prettierignore` copied, `.github/workflows/ci.yml` adapted (single-package: `pnpm typecheck` etc., no `-r`). Initial `pnpm format` pass run; full verification chain (format:check + typecheck + lint + test + build) all green.
+   - **Framework**: no convention edit. The discipline ("everything enforceable is enforced; pre-commit is the gate") is already in #25. The gap was the spawn-procedure not following through.
+
+3. **Verify discipline encoded as a script.** Edgar previously had no single-command `pnpm verify`; conventions #18 names the chain (`typecheck && lint && test && build`) but it lived in docs and the deploy command in `docs/CUSTOMER-SITE.md`, not in `package.json`. Added `"verify": "pnpm typecheck && pnpm lint && pnpm test && pnpm build"` to Edgar's scripts. Candidate to roll into `apps/reference-site/package.json` next pass.
+
+Why this batch is one Step, not three: all three surfaced from the same audit, all three target the same layer (template + spawn doc), and the underlying lesson is the same — **the template models what every customer inherits; if the template doesn't model it, customer sites pay the cost N times.** Production-readiness disciplines (security headers, formatter, pre-commit, CI) belong baked into the spawn output, not handed to each customer site to assemble.
+
+What's parked for the next pass:
+
+- **Strict CSP via nonces.** Current relaxation: `'unsafe-inline'` for script-src and style-src is required by Next.js + Tailwind out of the box. A nonce-based middleware approach (Next 16 supports it) would close the inline-XSS surface but adds per-request cost. Defer until Edgar's traffic profile justifies it; document as a future tightening pass.
+- **`scripts/spawn-prepare.sh`** at the template level. Would automate the `2a` + `2b` carry-forward in `docs/CUSTOMER-SITE.md`. Roadmap item; not blocking.
+- **CI image-vulnerability scan + lockfile-integrity step.** Convention #15 mentions dependency scanning; not yet wired in `ci.yml`. Land when the next customer site is spawned or when an actual vuln triggers.
+
+Files changed:
+
+- `~/Development4/customers/edgar/next.config.ts` — security headers block
+- `~/Development4/customers/edgar/package.json` — devDeps (husky, lint-staged, prettier) + scripts (prepare, format, format:check, verify)
+- `~/Development4/customers/edgar/.husky/pre-commit` — runs lint-staged
+- `~/Development4/customers/edgar/.lintstagedrc.json` — eslint + prettier
+- `~/Development4/customers/edgar/.prettierrc.json` + `.prettierignore`
+- `~/Development4/customers/edgar/.github/workflows/ci.yml` — single-package CI (verified locally; not yet pushed/run on GitHub)
+- `~/Development4/templates/headless-wp-next/apps/reference-site/next.config.ts` — same security headers block
+- `~/Development4/templates/headless-wp-next/docs/CUSTOMER-SITE.md` — spawn-procedure carry-forward steps (2a + 2b)
+
+Verification:
+
+- Edgar: `pnpm format:check && pnpm typecheck && pnpm lint && pnpm test && pnpm build` → all green; build emits Cloud Run-ready standalone bundle.
+- Template `apps/reference-site`: `pnpm -F reference-site typecheck` → green.
+- Headers will be exercised at Edgar's next deploy; runtime curl-verification scheduled for that pass.
+
 ## 2026-04-23 (Step 53) — Operator-dashboard pattern: second product validates the template + surfaces async-server-component + SSE-stream + subprocess-registry disciplines
 
 Trigger: `makemyweb-dashboard` — a second product spawned from `headless-wp-next` to control the platform that hosts `Edgar`. Built in one session end-to-end: scaffold → UI primitives → 9-route app → onboarding pipeline wired to real bash scripts → real-GCP redeploy/teardown. Along the way, patterns emerged that generalize beyond this project and weren't yet encoded in the framework.
