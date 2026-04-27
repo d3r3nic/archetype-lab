@@ -2,6 +2,49 @@
 
 Every improvement to the Archetype framework, why it was made, and what triggered it.
 
+## 2026-04-27 (Step 56) — CD via Workload Identity Federation: zero-credential deploys for customer sites
+
+Trigger: Edgar audit revealed deploy was a manual `gcloud run deploy --source .` ritual that required local gcloud auth. The user pushed back: "for auto deploy in git why do i need to authenticate locally? what do we need to trigger the deploy without authenticating? that's not a good CICD solution." Correct critique. The honest answer is: you don't — but the original Step 52 wrote up the manual path because it was the fastest way to get Edgar live. CD was always the right next infra step.
+
+The find: customer sites should auto-deploy on push to main with **no credentials stored in the repo and no local auth required for any deploy after one-time setup.** Service-account JSON keys in GitHub Secrets (the legacy path) is a leak risk and a rotation chore. The right modern primitive is **Workload Identity Federation (WIF)** — GitHub Actions presents an OIDC token, GCP trusts it via a pre-configured federation pool, GCP issues short-lived credentials. No long-lived secrets anywhere.
+
+Three artifacts land at both Edgar (concrete) and template (generic):
+
+1. **`.github/workflows/deploy.yml`** — runs after CI green on main (`workflow_run` trigger; only proceeds if `workflow_run.conclusion == 'success'`) OR on `workflow_dispatch` (manual fallback). Requires `id-token: write` for OIDC. Guards on missing GitHub repo Variables BEFORE attempting auth — exits fast with a clear "CD not configured" message so the first auto-run after copying the workflow doesn't silently deploy with bad config. Uses `google-github-actions/auth@v2` (the official action) + `setup-gcloud@v2`. Ends with a curl smoke test against the live URL retrying up to 5 times. Edgar's variant hardcodes service name (`edgar`) and customer label; template's variant parameterizes both via `CLOUD_RUN_SERVICE` Variable so any customer site uses the same workflow without edits.
+
+2. **`scripts/setup-cd.sh`** — idempotent one-time setup. Creates the WIF pool + OIDC provider (constrained via `attribute-condition` to `assertion.repository_owner == '<your-org>'` so only your org's repos can claim the federation), the deployer service account, the role bindings (`roles/run.admin`, `roles/iam.serviceAccountUser`, `roles/cloudbuild.builds.builder`, `roles/storage.objectAdmin`, `roles/artifactregistry.writer`), and the WIF policy binding that lets the specific customer-site repo impersonate the SA. Edgar's defaults are baked in; template's requires the operator to pass `PROJECT`, `GITHUB_REPO`, `CUSTOMER_NAME`, `WP_GRAPHQL_URL`, `SITE_URL` env vars — refuses to run with placeholder defaults so customer-site setup can't accidentally use Edgar's identity.
+
+3. **`docs/CD-SETUP.md`** — trust-chain explainer (ASCII diagram of OIDC → WIF pool → SA → Cloud Run), one-time setup walkthrough optimized for Cloud Shell on a phone, the GitHub repo Variables to set, how to roll back via `gcloud run services update-traffic`, and a WIF-vs-JSON-key trade-off table. Frames the Variable tab vs Secret tab choice — WIF identifiers are public-safe (a leaked WIF provider ID can't be used without also having a federated identity that matches the attribute condition) so they live as Variables not Secrets, which makes them debuggable.
+
+**Spawn-doc update**: `docs/CUSTOMER-SITE.md` step 2a now also copies `deploy.yml`, `setup-cd.sh`, `CD-SETUP.md`. New step 2c documents the two follow-ups (run setup-cd.sh once, set the 6 Variables in GitHub).
+
+**Why this is one Step**: same audit, same primitive, same lesson — **CD belongs baked into the spawn output the same way CI did in Step 54.** Customer sites already inherit Husky, lint-staged, prettier, ci.yml, dependabot.yml; they should also inherit deploy.yml + setup-cd.sh + CD-SETUP.md. After Step 56, the only spawn-time human decisions are the values to pass to `setup-cd.sh` (project ID, customer name, URLs) — everything else is templated.
+
+What's parked:
+
+- **Promote `setup-cd.sh` into a Cloud Run-agnostic helper** that also handles other GCP deploy targets (Cloud Run jobs, App Engine, GKE) when a customer site needs them. Edgar + the template are Cloud Run only for now; revisit when the second deploy target appears.
+- **Auto-set GitHub repo Variables via the GitHub CLI** at the end of `setup-cd.sh` (replacing the manual copy-paste step). Requires the operator to also have GitHub auth in the same shell — adds setup complexity. Defer until customer-site spawn frequency justifies it.
+- **Branch-based environments** (staging on PR, prod on main). The current workflow is single-environment. Add when Edgar's first staging need appears.
+
+Files changed:
+
+Edgar (`~/Development4/customers/edgar/`):
+
+- `.github/workflows/deploy.yml` — new
+- `scripts/setup-cd.sh` — new
+- `docs/CD-SETUP.md` — new
+- `.gcloudignore` — `/scripts` added (not needed in build context)
+- `feature-tree.md` — Build/CI row → Build/CI/CD; Deployment row → in progress
+
+Template (`~/Development4/templates/headless-wp-next/`):
+
+- `.github/workflows/deploy.yml` — new (parameterized via `CLOUD_RUN_SERVICE` + others)
+- `scripts/setup-cd.sh` — new (refuses to run without explicit env vars)
+- `docs/CD-SETUP.md` — new
+- `docs/CUSTOMER-SITE.md` — step 2a expanded to include the new files; new step 2c for CD bootstrap
+
+Verification: Edgar pushed to GitHub at commit `60f59a4b`. CI workflow triggered + running. The new deploy workflow will trigger via `workflow_run` after CI completes; it will fail at the "Verify CD configured" step with the "Missing GitHub repo Variables" error message, which is the expected first-run state until `setup-cd.sh` is run + Variables are set.
+
 ## 2026-04-26 (Step 55) — Public-website security round 2: cross-origin headers, robots/sitemap, observability stub, audit gate, Dependabot
 
 Trigger: Continuation of the same Edgar pre-feature audit that produced Step 54. After the foundational headers + spawn carry-forward landed, a tighter pass identified four more easy-wins for a public-facing brochure site that costs little now and would be expensive to retrofit later. None are Edgar-specific; all promote to the template.
