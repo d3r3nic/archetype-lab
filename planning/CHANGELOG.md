@@ -2,6 +2,69 @@
 
 Every improvement to the Archetype framework, why it was made, and what triggered it.
 
+## 2026-04-27 (Step 57) — Templates adopt the dashboard's site-config contract; new welcome-page template lands
+
+Trigger: The MMW dashboard side authored a template-AI prompt at `~/Development4/makemyweb-dashboard/docs/dev-ai-prompt-templates.md` describing what dashboard-managed customer sites need: a `template.yaml` manifest for the catalog, a `getSiteConfig()` helper consuming a `NEXT_PUBLIC_SITE_CONFIG` JSON blob, and a deploy workflow with specific variable names. The dashboard is currently parked, but the contract is real and templates that don't satisfy it will need retrofitting later. Better to align now, in a sweep, than retrofit per customer site.
+
+Three layers received the same pattern, three repos got commits, one new template was authored from scratch.
+
+**Layer 1 — `headless-wp-next` template retrofit.** Seven atomic commits at the template repo:
+
+1. `template.yaml` at root — id `headless-wp-next`, declares `required_env: NEXT_PUBLIC_WP_GRAPHQL_URL`, lists `optional_env` (REST URL, admin token, GA, Sentry), and `site_config_consumes` enumerates which SiteConfig fields this template actually reads (the dashboard's onboarding form gates controls based on this list).
+2. `apps/reference-site/src/shared/site/site-config.ts` — typed `getSiteConfig()` reader; three layers (env blob → repo file → DEFAULTS); type mirrors the dashboard's canonical `SiteConfig` interface (camelCase TS shape; YAML stays snake_case on the dashboard side). Path is `src/shared/site/` not `src/` because project convention #3 places shared utilities under `src/shared/`.
+3. `apps/reference-site/.env.example` — documents `NEXT_PUBLIC_SITE_CONFIG`. `site-config.json.example` added for local-dev fallback.
+4. `.gitignore` — `site-config.json` (the .example IS committed; the actual file isn't).
+5. `apps/reference-site/src/shared/site/config.ts` refactored — brand fields (`name`, `tagline`, `url`, `description`, `metaDescription`, `contact.email`) now flow through `getSiteConfig()` with code-pinned fallbacks. Customer sites pick mode per field: leave empty → dashboard injects; hardcode → ignore the blob. The existing `site` const stays exported so all consumers keep working.
+6. `.github/workflows/deploy.yml` — renamed `GCP_PROJECT_ID` → `GCP_PROJECT` (spec naming); added `NEXT_PUBLIC_SITE_CONFIG` to `--set-env-vars`. Used gcloud's `^@^` custom-delimiter syntax for set-env-vars because JSON blobs contain commas — the default comma-delimited form would mis-parse.
+7. `scripts/setup-cd.sh` + `docs/CD-SETUP.md` — output renamed; added `SITE_CONFIG` row; framed it explicitly as a Variable (not a Secret) since the blob is public-safe by design.
+
+**Layer 2 — Edgar adopts the same pattern.** Five atomic commits at the customer repo:
+
+1. `src/shared/site/site-config.ts` (mirror of template's), with Edgar-specific `DEFAULTS` (name `edgar`, tagline architecture-y, primary `#0a0a0a`, fonts Geist Sans). Test included.
+2. `src/shared/site/config.ts` refactored to consume `getSiteConfig()` — code-pinned Edgar values still win when SiteConfig fields are empty. Edgar's brand stays code-pinned today; the path is open if/when the dashboard takes over branding.
+3. `.github/workflows/deploy.yml` — same rename + SITE_CONFIG injection as the template.
+4. `scripts/setup-cd.sh` + `docs/CD-SETUP.md` aligned.
+5. `.env.example` documents `NEXT_PUBLIC_SITE_CONFIG`; `site-config.json.example` added; `.gitignore` ignores `site-config.json`.
+
+**Layer 3 — `welcome-page` new template.** Nine atomic commits at a brand-new repo (`~/Development4/templates/welcome-page/`, `git init`'d):
+
+1. Scaffold (package.json, tsconfig, next.config standalone, gitignore).
+2. Tooling configs (eslint flat config + next-vitals, prettier, lint-staged, vitest jsdom, postcss for Tailwind 4).
+3. `src/shared/site/site-config.ts` + test (mirror; generic DEFAULTS — "Your site" / "Built with makemyweb" / Inter).
+4. `src/app/layout.tsx` (SiteConfig-driven CSS variables via inline `<style>`; Google Fonts loaded dynamically based on `cfg.typography`; metadata flows from `cfg.seo` + `cfg.branding`); `src/app/page.tsx` (single landing page, optional logo, optional CTA, "Powered by makemyweb" footer); `src/app/api/health/route.ts` (returns `{ ok: true, version }` for deploy smoke tests).
+5. `template.yaml` (id `welcome-page`, no `required_env`, narrow `site_config_consumes`); `README.md`; `.env.example`; `site-config.json.example`.
+6. `Dockerfile` (multi-stage standalone, single `NEXT_PUBLIC_SITE_CONFIG` build arg defaulting to empty); `.dockerignore`; `.gcloudignore`.
+7. `.github/workflows/{ci,deploy}.yml` (deploy.yml is simpler than template's — no WP_GRAPHQL_URL); `.github/dependabot.yml`; `.husky/pre-commit`.
+8. `scripts/setup-cd.sh` + `docs/CD-SETUP.md`.
+9. `pnpm install` + `pnpm build` produced lockfile and Next.js's tsconfig normalization. Verified: format ✓ typecheck ✓ lint ✓ 3 tests pass ✓ build ✓ (3 routes: `/`, `/_not-found`, `/api/health`).
+
+**Three intentional divergences from the spec, documented for when the dashboard un-parks**:
+
+1. **WIF supersedes SA JSON key.** The spec proposed `secrets.GCP_SA_KEY` injected by the dashboard at fork time. Step 56 already shipped Workload Identity Federation across all customer-site CD; that's strictly better (no long-lived key in the repo, no rotation, short-lived OIDC tokens). The dashboard's fork-template logic should adopt WIF when un-parked, not the other way around — i.e. drop the SA-key generation step and instead set the three WIF GitHub repo Variables.
+
+2. **`NEXT_PUBLIC_SITE_CONFIG` is a Variable, not a Secret.** The spec used `secrets.SITE_CONFIG_JSON`. The blob carries public-safe content (brand strings, color hexes, public URLs, GA IDs) which is inlined into the client bundle anyway — keeping it as a GitHub Variable makes it debuggable in Actions logs and accurately reflects its trust level. Anything actually sensitive (Stripe keys, DB credentials) belongs in Secrets and is read server-side only via separate env vars.
+
+3. **Path: `src/shared/site/site-config.ts`, not `src/site-config.ts`.** The spec's author flagged this as an open question. Project convention #3 places shared utilities under `src/shared/`; that path won. Functionally identical; just where the file lives. The dashboard side parses `template.yaml` and consumes `NEXT_PUBLIC_SITE_CONFIG` over the wire — it never imports the helper directly, so the path is internal.
+
+What's parked for follow-up:
+
+- **Promote the three `getSiteConfig()` files to a single `@template/site-config` package** so headless-wp-next, welcome-page, and Edgar consume the same module instead of three near-identical mirrors. Defer until a third template lands or until the SiteConfig schema evolves and the drift starts hurting.
+- **Auto-set GitHub repo Variables via the GitHub CLI** at the end of `setup-cd.sh` (replacing the manual copy-paste). Adds GitHub auth requirement to setup; defer until customer-site spawn frequency justifies it.
+- **Promote `welcome-page` and `headless-wp-next` `getSiteConfig` parsing to use Zod for runtime validation** (the dashboard's canonical schema is Zod). Templates currently `JSON.parse + cast`. Add when first invalid-config bug appears in production.
+- **Document the WIF-supersedes-SA-key contract change in the dashboard prompt doc** when the dashboard un-parks. The dashboard's fork logic needs to be updated to set Variables (not Secrets) for WIF identifiers and drop the SA-key step entirely.
+
+Files changed:
+
+Factory (`~/Development2/ai-dev-framework/`): `planning/CHANGELOG.md` (this Step).
+
+Template (`~/Development4/templates/headless-wp-next/`): `template.yaml` (new), `apps/reference-site/src/shared/site/site-config.ts` + test (new), `apps/reference-site/src/shared/site/config.ts` (refactored), `apps/reference-site/.env.example` (updated), `apps/reference-site/site-config.json.example` (new), `.gitignore` (updated), `.github/workflows/deploy.yml` (updated), `scripts/setup-cd.sh` (updated), `docs/CD-SETUP.md` (updated).
+
+Customer (`~/Development4/customers/edgar/`): `src/shared/site/site-config.ts` + test (new), `src/shared/site/config.ts` (refactored), `.github/workflows/deploy.yml` (updated), `scripts/setup-cd.sh` (updated), `docs/CD-SETUP.md` (updated), `.env.example` (updated), `site-config.json.example` (new), `.gitignore` (updated).
+
+New template (`~/Development4/templates/welcome-page/`): full standalone Next.js project, ~30 files at v1. See repo for tree.
+
+Verification: all three `pnpm` projects pass typecheck/lint/test/build/format-check. Welcome-page's first build emits `/`, `/_not-found`, `/api/health` routes. Acceptance test from `templates/welcome-page/README.md` (set `NEXT_PUBLIC_SITE_CONFIG`, observe page renders the override) is the next manual smoke when CD is live.
+
 ## 2026-04-27 (Step 56) — CD via Workload Identity Federation: zero-credential deploys for customer sites
 
 Trigger: Edgar audit revealed deploy was a manual `gcloud run deploy --source .` ritual that required local gcloud auth. The user pushed back: "for auto deploy in git why do i need to authenticate locally? what do we need to trigger the deploy without authenticating? that's not a good CICD solution." Correct critique. The honest answer is: you don't — but the original Step 52 wrote up the manual path because it was the fastest way to get Edgar live. CD was always the right next infra step.
