@@ -65,6 +65,44 @@ New template (`~/Development4/templates/welcome-page/`): full standalone Next.js
 
 Verification: all three `pnpm` projects pass typecheck/lint/test/build/format-check. Welcome-page's first build emits `/`, `/_not-found`, `/api/health` routes. Acceptance test from `templates/welcome-page/README.md` (set `NEXT_PUBLIC_SITE_CONFIG`, observe page renders the override) is the next manual smoke when CD is live.
 
+### Amendment 2026-04-27 (same day) — welcome-mode unified into universal template default; standalone `welcome-page` deprecated
+
+Trigger: dashboard side authored `~/Development4/makemyweb-dashboard/docs/dev-ai-prompt-welcome-mode.md` shifting the architecture: every template should render the welcome view by default (gated on `siteConfig.behaviour.welcomeMode`) until the operator/dev explicitly flips it off. The welcome UI lives **inside each template**, not as a standalone template. Customer experience becomes one repo from welcome → live, no template swaps, no re-forking.
+
+Eight atomic commits (plus two schema mirrors, plus a filesystem doc):
+
+1. `template`: add `behaviour.welcomeMode` to SiteConfig mirror — `apps/reference-site/src/shared/site/site-config.ts`. Companion to the dashboard schema commit (snake `welcome_mode` ↔ camel `welcomeMode`).
+2. `edgar`: same field added to Edgar's mirror — keeps the type in lockstep across all consumers. Edgar is a customer site, not a template, so it doesn't render the welcome view itself, but the field exists for consistency.
+3. `feat(welcome)`: copy welcome UI into `headless-wp-next/apps/reference-site/src/components/welcome/` as `WelcomeView.tsx` (Server Component, takes `SiteConfig` as a prop, derives all colors/fonts inline so it renders correctly regardless of host template's globals.css). `index.ts` named-export barrel.
+4. `feat(welcome)`: gate `apps/reference-site/src/app/page.tsx` on `cfg.behaviour?.welcomeMode !== false` (default-on convention — missing or true → WelcomeView; explicit false → HomeContent). Existing reference-site demo extracted to `home-content.tsx` as a `HomeContent` named-export component.
+5. `docs(template)`: add `behaviour.welcomeMode` to `template.yaml`'s `site_config_consumes` so the dashboard's onboarding form surfaces the toggle for sites spawned from this template.
+6. `test(welcome)`: 4 new tests covering the gate (default-on, explicit-true, explicit-false, branding-flows-through). Vitest + React Testing Library. Reference-site test count: 23 → 27.
+7. **Deletion**: `rm -rf ~/Development4/templates/welcome-page/`. Templates/ is not itself a git repo, so the deletion isn't a commit anywhere — but the welcome-page directory had its own `.git/` whose 9-commit history is archived here for the record (no remote was created; this is the only surviving record):
+   ```
+   e44098c welcome-page: lockfile + Next.js tsconfig normalization + format pass
+   b4ce25a welcome-page: setup-cd.sh + docs/CD-SETUP.md
+   58e4211 welcome-page: CI + CD workflows + Dependabot + husky pre-commit
+   db9dd38 welcome-page: Dockerfile + .dockerignore + .gcloudignore
+   7608fa1 welcome-page: template.yaml + README + .env.example + site-config.json.example
+   09d6f3c welcome-page: layout + page + /api/health
+   eaac3e0 welcome-page: add getSiteConfig() helper + test
+   b858ae8 welcome-page: tooling configs (eslint, prettier, lint-staged, vitest, postcss)
+   d0bb492 welcome-page: scaffold (package.json, tsconfig, next.config, gitignore)
+   ```
+8. **New convention doc** at `~/Development4/templates/CONVENTIONS.md` — codifies the universal-welcome-mode rule, the per-template `src/components/welcome/` copy discipline (until a `@template/welcome` factor lands at 3+ templates), the SiteConfig minimum-baseline fields, and the new "adding a template" checklist. Lives at `templates/` root (which isn't a git repo) — uncommitted-but-discoverable.
+
+Why the unification matters: the welcome view becomes a **state of every template**, not a separate product. The operator's experience is "press Enter → polished page in 5 minutes → flip a flag when ready". No template swaps, no re-forking, same repo from welcome-state through live-content. The `welcome-page` we built earlier in this Step was the right idea expressed as the wrong abstraction.
+
+Verification (post-unification): `pnpm -F reference-site` typecheck/lint/test (27 pass)/build all green. Build emits the same routes as before (welcome-mode is purely a render-time gate; routes don't change). Visual parity: WelcomeView is functionally identical to the deleted welcome-page's `page.tsx` — same JSX, same Tailwind classes, same color/font derivation logic; only difference is the wrapper takes `SiteConfig` as a prop instead of calling `getSiteConfig()` internally.
+
+Files changed in this amendment (relative to repo roots):
+
+- Template: `apps/reference-site/src/shared/site/site-config.ts` (+welcomeMode), `apps/reference-site/src/components/welcome/{WelcomeView.tsx,index.ts}` (new), `apps/reference-site/src/app/{page.tsx,home-content.tsx,page.test.tsx}` (page gated; HomeContent extracted; tests added), `template.yaml` (+welcomeMode in site_config_consumes).
+- Edgar: `src/shared/site/site-config.ts` (+welcomeMode).
+- Filesystem: `templates/welcome-page/` deleted; `templates/CONVENTIONS.md` written.
+
+Parked: `@template/welcome` shared package — defer until 3+ templates exist, per the convention's own discipline.
+
 ## 2026-04-27 (Step 56) — CD via Workload Identity Federation: zero-credential deploys for customer sites
 
 Trigger: Edgar audit revealed deploy was a manual `gcloud run deploy --source .` ritual that required local gcloud auth. The user pushed back: "for auto deploy in git why do i need to authenticate locally? what do we need to trigger the deploy without authenticating? that's not a good CICD solution." Correct critique. The honest answer is: you don't — but the original Step 52 wrote up the manual path because it was the fastest way to get Edgar live. CD was always the right next infra step.
