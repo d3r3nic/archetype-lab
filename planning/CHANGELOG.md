@@ -2,6 +2,83 @@
 
 Every improvement to the Archetype framework, why it was made, and what triggered it.
 
+## 2026-04-27 (Step 58) — Forkable customer-site-template: split the workspace testbed from the spawn target; promote the discipline to the framework
+
+Trigger: real end-to-end onboarding tests on the makemyweb dashboard surfaced ten distinct patches that `fork-template.sh` had to apply at fork time to make a customer site usable. Each patch was a band-aid for the same root cause — `apps/reference-site/` was being used as both the in-monorepo testbed for `@template/*` packages AND the canonical "starting point for forks" per `docs/CUSTOMER-SITE.md`. It can't be both: workspace assumptions (workspace:* deps, monorepo tsconfig base, no per-package lockfile, root-level husky/prettier/CI configs) leak into customer forks. Each leak required a patch. Once the patch list crossed seven, the prompt landed: "Apps/reference-site/ is structurally a workspace member, not a standalone project. The documented spawn flow produces a fork that doesn't work without post-fork surgery."
+
+Resolved with **Option B** — split the two roles:
+
+- `apps/reference-site/` stays the in-monorepo testbed; `workspace:*` deps; tsconfig extends monorepo base; no per-package lockfile.
+- `apps/customer-site-template/` is the **canonical fork target** — purpose-built standalone. Own lockfile, inlined tsconfig, full devDeps including husky/lint-staged/prettier, single-package CI, full CD via Workload Identity Federation (Step 56), Dockerfile, security headers (Steps 54-55), observability stub (Step 55), universal welcome view (Step 57). Negated from `pnpm-workspace.yaml` so its `file:./vendor/template-packages/*.tgz` deps resolve as a real fork would (no workspace short-circuit).
+
+Both render the same UI; chrome differs. They stay in sync via a unidirectional `scripts/sync-customer-site.sh` (rsync of `src/`, excluding dev-only diagnostic UI like /pulse). The sync script is wired into `pack-local.sh` so packing the template ALSO refreshes `apps/customer-site-template/src/` AND its `vendor/template-packages/`. reference-site is the source of truth for `src/`; customer-site-template is downstream, never edited directly.
+
+**Each of the 10 monkey-patches the dashboard accumulated is now obsolete** because the equivalent ships in source:
+
+| # | The old patch | New shape (in source) |
+| - | ------------- | --------------------- |
+| 1 | Strip `pnpm -r` from CI | CI workflow is single-package by design |
+| 2 | Strip `Validate framework` + `Pulse snapshot` CI steps | Those steps don't exist in customer-site-template's CI; they're testbed-only |
+| 3 | Strip `--frozen-lockfile` from CI | Per-app `pnpm-lock.yaml` committed; `--frozen-lockfile` works |
+| 4 | Add husky + lint-staged + prettier to devDeps + scripts | Already in customer-site-template's package.json + .husky/pre-commit |
+| 5 | Strip `pulse:generate` (uses `cd ../..`) | No `pulse:generate` script in customer-site-template's package.json |
+| 6 | Skip copying dependabot.yml | Customer-site-template's dependabot.yml is current; no skip needed |
+| 7 | Skip `archetype/` symlink | No symlink in customer-site-template; archetype is template-side only |
+| 8 | Synthesize lockfile for CI cache | Lockfile committed |
+| 9 | Append vendor/, package.json, site-config.json, next-env.d.ts to .prettierignore | All four already in customer-site-template/.prettierignore |
+| 10 | Inline tsconfig.json (parent base doesn't exist in fork) | Tsconfig is inlined; no extends |
+
+**Acceptance criterion verified.** Ran the full script from §"Acceptance criterion" of the forkability prompt verbatim against `apps/customer-site-template/` rsync'd to `/tmp/cst-acceptance/` (no patches between rsync and verify):
+
+```
+pnpm install        ✓
+pnpm format:check   ✓ (All matched files use Prettier code style!)
+pnpm typecheck      ✓
+pnpm lint           ✓
+pnpm test           ✓ (8 files, 27 tests pass)
+pnpm build          ✓ (8 routes emitted: /, /_not-found, /blog, /blog/[slug], /products, /products/[slug], /robots.txt, /sitemap.xml)
+```
+
+Manifest update: `template.yaml` now declares `source.forkable_path: apps/customer-site-template` so the dashboard's fork-template.sh knows exactly which directory to rsync. Build command updated to operate on the customer repo root (no monorepo-relative paths).
+
+Spawn doc rewritten: `docs/CUSTOMER-SITE.md` Option A collapsed from ~50 lines of carry-forward dance (steps 2a/2b/2c each addressing a distinct patch) to **5 lines** — clone, cp, optional site-config, package.json name rewrite, git init.
+
+**Promoted to the framework**: new doc at `dist/development/CREATING-FORKABLE-TEMPLATES.md` captures the discipline framework-agnostically. Sections: forkability bar (acceptance test), the testbed-vs-forkable trap, what ships in source, the sync mechanism, manifest declaration, framework-specific notes (Next.js / Astro / SvelteKit / Remix), the 10 patches as a "ship at source" checklist, and the acceptance-test recipe. Future templates for any stack start with this baked in.
+
+**Side cleanup in this iteration** (per the user's "always remember reusable" reminder, saved to memory as `feedback_reusable_default.md`):
+
+- Template's `apps/reference-site/src/app/error.tsx` was referencing non-existent tokens (`--t-color-ink-2`, `--t-color-ink-1`, `--t-font-size-xl`) with hardcoded hex/rem fallbacks (#555, 0.75rem, etc.). The fallbacks were the actual rendered colors, defeating the token system. Rewrote as Tailwind arbitrary-value syntax with real tokens (`--text-muted`, `--t-text-xl`, `--t-space-N`); no fallbacks. Backported to Edgar.
+- Template + Edgar's `(dev)/pulse/` files had hardcoded `#666` muted text + `'ui-sans-serif, system-ui'` font literal. Swapped to `var(--text-muted)` + `var(--t-font-sans)` + `var(--t-space-N)` so the dev diagnostic at least respects dark-mode + token overrides. Status `#b00` (error) kept — it's a diagnostic indicator, not a brand decision; commented as such.
+
+Files changed in this Step:
+
+Template (`~/Development4/templates/headless-wp-next/`):
+
+- `apps/customer-site-template/` — entirely new directory: package.json, tsconfig (inlined), next.config (security headers), eslint/prettier/lint-staged/postcss/vitest configs, .npmrc (ignore-workspace), .husky/pre-commit, src/ (mirrored from reference-site, excluding /pulse), .env.example, site-config.json.example, README, Dockerfile, .dockerignore, .gcloudignore, .github/{workflows/{ci,deploy}.yml,dependabot.yml}, scripts/setup-cd.sh, docs/CD-SETUP.md, pnpm-lock.yaml.
+- `pnpm-workspace.yaml` — negated `apps/customer-site-template`.
+- `scripts/sync-customer-site.sh` — new; one-directional reference-site → customer-site-template src/ + vendor/ refresh.
+- `scripts/pack-local.sh` — calls sync as last step.
+- `template.yaml` — `forkable_path: apps/customer-site-template` + build command updated.
+- `docs/CUSTOMER-SITE.md` — Option A rewritten to use customer-site-template; old carry-forward dance archived inline.
+- `apps/reference-site/src/app/error.tsx` — token references fixed.
+- `apps/reference-site/src/app/(dev)/pulse/{page.tsx,pulse-view.tsx}` — token references fixed.
+
+Customer (`~/Development4/customers/edgar/`):
+
+- `src/app/error.tsx` — backport of template error.tsx fix.
+- `src/app/(dev)/pulse/{page.tsx,pulse-view.tsx}` — backport.
+
+Framework (`~/Development2/ai-dev-framework/`):
+
+- `dist/development/CREATING-FORKABLE-TEMPLATES.md` — new methodology doc (this Step's promotion).
+- `planning/CHANGELOG.md` — this entry.
+
+What's parked:
+
+- **`@template/welcome` shared package** — still deferred until 3+ templates exist (per the welcome-mode CONVENTIONS.md rule from Step 57). Until then, the sync-customer-site.sh approach holds.
+- **Removing `archetype/` self-check + pulse-snapshot steps from `apps/reference-site/.github/workflows/ci.yml`** — those steps still run on the in-monorepo testbed (correctly; that's where the framework lives). They're absent from customer-site-template (correctly; not a customer concern).
+- **Memory**: saved `feedback_reusable_default.md` — when the same shape appears in 2+ places, design ONE source of truth + a sync/extract mechanism before writing it twice. The user keeps surfacing this; convention #00 applied across project boundaries.
+
 ## 2026-04-27 (Step 57) — Templates adopt the dashboard's site-config contract; new welcome-page template lands
 
 Trigger: The MMW dashboard side authored a template-AI prompt at `~/Development4/makemyweb-dashboard/docs/dev-ai-prompt-templates.md` describing what dashboard-managed customer sites need: a `template.yaml` manifest for the catalog, a `getSiteConfig()` helper consuming a `NEXT_PUBLIC_SITE_CONFIG` JSON blob, and a deploy workflow with specific variable names. The dashboard is currently parked, but the contract is real and templates that don't satisfy it will need retrofitting later. Better to align now, in a sweep, than retrofit per customer site.
