@@ -2,6 +2,78 @@
 
 Every improvement to the Archetype framework, why it was made, and what triggered it.
 
+## 2026-04-28 (Step 59) — Prod-ready template build-out: customer-site-template ships approve-able as-is; Edgar reaches feature parity
+
+Trigger: user direction "what I want is a prod-ready template where we can make customization based on the customers input … should have something proper to represent. and it should be prod ready that even if they approved I'd just keep as is. meaning should have developed it based on all the rules and conventions." Step 58 had given us the forkable artifact (`apps/customer-site-template/`); Step 59 fills it with content, security, and polish so a customer who fork-and-deploys without a single content edit gets a defensible site.
+
+The work split into four phases plus follow-ups, all atomic-committed, all per-convention:
+
+**Phase 0 — Portfolio uplift.** The Portfolio Index + Detail that originally landed in Edgar in #41 was wrong-place: features for *every* customer site belong upstream in `apps/reference-site/`, not per-customer. Ported `src/features/portfolio/` (types, queries, PortfolioCard, tests) + `src/app/portfolio/` (index + `[slug]`) from edgar to reference-site, brand-neutralized the copy, ran `sync-customer-site.sh` to propagate into `customer-site-template/`. Edgar's local Portfolio code stays as drift (will re-sync from template when convenient).
+
+**Phase 1 — Composed home.** Replaced the buttons-demo `HomeContent` (rendered when `welcomeMode: false`) with a designtank-inspired single-page composition: 7 section components (Hero, ServicesOverview, FeaturedProjects, Philosophy, Values, Testimonials, ContactCTA), each its own file under `src/components/sections/` for independent override. Content lives in a new `src/shared/site/content.ts` as named exports — `homeServices` (with deliverables + process), `homePhilosophy`, `homeValues`, `homeTestimonials`. Customer sites edit that file (or override per-section via SiteConfig once schema extends). DEFAULTS were authored as defensible architectural-studio voice copy so any customer who approves the template as-is gets a complete site.
+
+**Phase 2 — Pages.** `/services` (per-service section with deliverables list + 4-step process, anchor-linked from home), `/about` (5 numbered sections — studio, philosophy, values, team, awards — reusing `homePhilosophy` + `homeValues` so home and about narratives stay in lockstep), `/contact` (info-only initially; full form arrived as #43). All `force-static`, all `generateMetadata` reading brand from SiteConfig.
+
+**Phase 3 — Legal.** `/privacy` + `/terms` boilerplate. Both flag themselves as "TEMPLATE BOILERPLATE — replace with jurisdiction-reviewed text before public launch" inline. 7 sections each, brand name injected from SiteConfig, last-updated date as edit-target placeholder. Footer slot was already pointing at these URLs (Step 54 pre-baked the footer shape); they now resolve.
+
+**Phase 4 — Polish.** Three sub-phases:
+
+- **4a Animations.** `RevealOnScroll` client component — IntersectionObserver-based fade-up. SSR-safe lazy initializer respects React 19's `set-state-in-effect` lint rule. `prefers-reduced-motion: reduce` honored via `matchMedia` check. Wraps every below-the-fold home section.
+- **4b Mobile menu.** `MobileMenu` client component — hamburger trigger (md:hidden), full-screen overlay panel, ESC + body scroll-lock + auto-focus first link + auto-close on link click. Single component for all viewport sizes per the Mobile Rule decision in `templates/CONVENTIONS.md`.
+- **4c A11y.** New `sections.axe.test.tsx` exercises 6 home sections against WCAG 2.1 Level A + AA (FeaturedProjects skipped — async cms-touching). Convention #14 closed for this surface.
+
+**Phase 4d Lighthouse** deferred — needs a deployed URL. Re-opens after Edgar's first auto-deploy lands (#40).
+
+Two follow-up tasks landed in the same arc:
+
+- **#43 Contact form + security suite.** Replaced the /contact stub with a full working form. Server-side: `app/api/contact/route.ts` runs JSON parse → Zod validation → honeypot silent-200 → in-memory per-IP rate limit (5/hour, single-instance — Redis swap-in is a one-line change behind the same `consume()` API) → optional `CONTACT_WEBHOOK_URL` forward (Make / Zapier / Postmark trigger; customer wires env at deploy) → fallback log via observability stub. Client-side: `ContactForm` with Zod schema-as-contract (same schema both sides), visually-hidden honeypot field, loading + success + error states, privacy-link disclosure under the form. 15 new tests across `schema.test.ts` + `rate-limit.test.ts`.
+- **#49 Nonce-based CSP.** Closed the inline-script XSS surface. New `src/middleware.ts` generates a per-request base64 nonce, builds the CSP header (`script-src 'self' 'nonce-{value}' 'unsafe-inline'` — legacy fallback only fires on CSP2-only clients) and forwards `x-nonce` to the RSC tree. CSP entry removed from `next.config.ts`; other security headers (HSTS, X-Frame, X-Content-Type, Referrer-Policy, Permissions-Policy, COOP, CORP) stay in `headers()`. Style-src kept at `'unsafe-inline'` — Tailwind 4 dev-mode inline `<style>` blocks don't carry nonces; that migration is a separate pass. `'strict-dynamic'` intentionally not used (would block `/_next/static/` secondary scripts).
+
+**Edgar parity pass.** After the template work, ported six surfaces to Edgar so the architect-portfolio customer instance is feature-complete: Portfolio (already there), `/services`, `/about`, `/contact` (with the full form + security suite), `/privacy`, `/terms`. Edgar inherits the same `content.ts` (architectural-studio voice — same DEFAULTS) and the same nonce-CSP middleware. Edgar nav.primary now: portfolio + services + about; CTA goes to `/contact` (was mailto). Footer re-populates with privacy + terms.
+
+Files (template — `headless-wp-next`):
+
+- `apps/reference-site/src/features/portfolio/{types,queries,PortfolioCard,*test}` (ported from edgar)
+- `apps/reference-site/src/features/contact/{schema,rate-limit,ContactForm,*tests}`
+- `apps/reference-site/src/app/{portfolio,services,about,contact,privacy,terms}/page.tsx`
+- `apps/reference-site/src/app/api/contact/route.ts`
+- `apps/reference-site/src/components/sections/{Hero,Services,Featured,Philosophy,Values,Testimonials,Contact}.tsx + sections.axe.test.tsx`
+- `apps/reference-site/src/components/{RevealOnScroll,MobileMenu}.tsx`
+- `apps/reference-site/src/middleware.ts` — nonce CSP
+- `apps/reference-site/src/shared/site/content.ts`
+- `apps/reference-site/src/app/{home-content,layout,page,sitemap}.tsx` — composed home + mobile menu wired
+- `apps/reference-site/next.config.ts` — CSP moved to middleware
+
+`apps/customer-site-template/` synced via `scripts/sync-customer-site.sh` after each phase. Forkable artifact ships everything above.
+
+Files (Edgar — `customers/edgar/`):
+
+- `src/features/contact/*` (ported)
+- `src/features/portfolio/*` (kept its own copy from #41; will eventually re-sync from template)
+- `src/app/{services,about,contact,privacy,terms}/page.tsx` (ported)
+- `src/components/{RevealOnScroll,MobileMenu}.tsx` (ported)
+- `src/middleware.ts` — nonce CSP (mirrored)
+- `src/shared/site/content.ts` (mirrored)
+- `next.config.ts` — CSP removed
+- `src/shared/site/config.ts` — nav.primary expanded; CTA → /contact
+- `src/app/sitemap.ts` — services + about + contact + privacy + terms
+
+Verification (final, post-Phase 4):
+
+- Reference-site: typecheck ✓ lint ✓ 52 tests pass (was 27 at session start; +25) build emits `Proxy (Middleware)` route entry. Bundle 240 kB / 300 kB brotlied (was 177 kB; +60 kB from form + Zod-client + Reveal + MobileMenu).
+- Customer-site-template: same chain via `--ignore-workspace`, all green.
+- Edgar: typecheck ✓ lint ✓ 44 tests pass (was 23 at session start; +21).
+- Local dev preview: reference-site at localhost:3002 renders all 7 routes with composed home + animations + mobile menu (verified via curl HTTP 200 on each).
+
+What's left in the prod-ready arc (none doable autonomously):
+
+- **#40** — user runs `setup-cd.sh` from Cloud Shell or laptop; sets 7 GitHub Variables; pushes Edgar to trigger first auto-deploy via WIF. Edgar is 28 commits ahead of origin/main; the held push is the gate to live.
+- **Phase 4d Lighthouse audit** — needs the live URL; runs after Edgar's first deploy.
+- **#50–54** — external-trigger items (Sentry account, Cloud Armor window, CAA DNS access, 30-day-stable HSTS preload, real staging-env need).
+- **#55, #56** — `@template/site-config` + `@template/welcome` shared package factor; trigger is 3+ templates with the same shape (only headless-wp-next today).
+
+What this Step demonstrates for the framework: when the spawn-target is a self-contained artifact (Step 58 forkability) AND ships approve-able-as-is content (Phase 1 composed home + content.ts) AND has security defaults at every layer (Step 54 headers, Step 56 WIF deploy, Step 59 nonce CSP), customer onboarding becomes "fork → maybe edit content.ts → push to main." Every monkey-patch we used to apply at fork-time has been promoted upstream.
+
 ## 2026-04-27 (Step 58) — Forkable customer-site-template: split the workspace testbed from the spawn target; promote the discipline to the framework
 
 Trigger: real end-to-end onboarding tests on the makemyweb dashboard surfaced ten distinct patches that `fork-template.sh` had to apply at fork time to make a customer site usable. Each patch was a band-aid for the same root cause — `apps/reference-site/` was being used as both the in-monorepo testbed for `@template/*` packages AND the canonical "starting point for forks" per `docs/CUSTOMER-SITE.md`. It can't be both: workspace assumptions (workspace:* deps, monorepo tsconfig base, no per-package lockfile, root-level husky/prettier/CI configs) leak into customer forks. Each leak required a patch. Once the patch list crossed seven, the prompt landed: "Apps/reference-site/ is structurally a workspace member, not a standalone project. The documented spawn flow produces a fork that doesn't work without post-fork surgery."
