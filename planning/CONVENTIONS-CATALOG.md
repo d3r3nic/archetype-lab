@@ -446,6 +446,30 @@ Includes:
 
 Reusable system produced: UI wrapper library, Storybook setup, visual testing config.
 
+### #28 CONFIG-DRIVEN BRAND & CONTENT
+
+How a template ships once and serves many customers without code edits per customer.
+
+Sources: [A] strong (factory-first, config-driven, widget pattern — applied to content) | [D] downstream battle test (Step 60+: headless-wp-next template promoted from prototype to fork-ready when Edgar's content kept relying on stale template DEFAULTS instead of its own config)
+
+Includes:
+- Single typed schema for every brand-shaped value (branding, theme, nav, contact, social, content per page-shape, commerce, compliance, integrations, SEO)
+- Three-layer resolver: env-var blob → on-disk fallback file → typed defaults
+- Universal `getSiteConfig()` getter on server + client surfaces
+- One canonical `docs/CONFIG.md` documenting every field
+- Schema validation at trust boundaries (env parse + server-action input)
+- "Edit JSON, never edit view code" as the customer-spawn contract
+- Acceptable-hardcoding allowlist (state markers, framework infra, structural glyphs, page section ORDER)
+
+Specifics that DO NOT belong in the framework convention (template-local per Rule #5b of factory CLAUDE.md):
+- The specific env-var name (`NEXT_PUBLIC_SITE_CONFIG` for Next.js, `EXPO_PUBLIC_SITE_CONFIG` for Expo, etc.) — template decides
+- The view-code syntax (`.tsx`, `.vue`, `.dart`) — template decides
+- The validation library (Zod, Pydantic, ajv) — template decides
+
+Reusable system produced: schema package + resolver + getter; config doc; defaults that render a neutral demo.
+
+Relationship to #0: this is #0 (reusability) applied to BRAND & CONTENT specifically. Where #0 says "build it once, configure for context," #28 says "configure it from JSON, never from code."
+
 ---
 
 ## OPTIONAL ADDONS (included when project needs them)

@@ -2,6 +2,30 @@
 
 Every improvement to the Archetype framework, why it was made, and what triggered it.
 
+## 2026-05-14 (Step 60) — Convention #28 Config-Driven Brand & Content promoted from headless-wp-next battle test
+
+Trigger: while making the headless-wp-next template forkable (downstream of Step 59), every customer-facing string had to be moved from `.tsx` into a config blob. The pattern was already being followed by reflex but wasn't codified — and a real bug surfaced when Edgar was migrated: Edgar had been silently relying on TEMPLATE DEFAULTS to render its architecture-studio content. When those defaults were neutralized in the template, Edgar's content would have gone blank. That's a Convention violation that only an explicit rule prevents.
+
+User direction made the promotion explicit: "make sure if you're making changes it is based on the rules of the framework" → then later "config driven context is very important" + "pretty much the factory can hold too much data about each feature but the framework should pretty much be like the product with only needed info to develop. the factory is the reason behind why."
+
+The work split into:
+
+**The convention itself** — `dist/conventions/28-config-driven-content.md` (149 lines). Principle (edit JSON, never view code), Reusable System (typed schema + 3-layer resolver + universal getter + canonical doc), Rules (12 specific prohibitions), Acceptable Hardcoding (state markers, framework infra, structural glyphs, page section ORDER), Violations (8 specific antipatterns), Wrong vs Right (illustrative, stack-agnostic), Test (the "would a different industry need this changed?" check).
+
+**Framework-agnostic discipline applied per CLAUDE.md Rule #5.** Initial draft (written downstream in `templates/archetype/` first) included Next.js-specific references — `NEXT_PUBLIC_SITE_CONFIG`, `.tsx`, `JSX`. Per the rule "Framework encodes character; project artifacts hold specifics," those got moved into template-local docs (headless-wp-next's `docs/CONFIG.md` + `References.md`) and the convention itself now reads stack-neutral: "env-var blob → on-disk fallback → typed defaults" with a paragraph naming the specific env-var-name choice as template-local.
+
+**Catalog entry** — `planning/CONVENTIONS-CATALOG.md` gained a #28 section under SPECIALIZED PATTERNS. Sources tagged [A] (factory-first / config-driven applied to content) + [D] (downstream battle test from headless-wp-next + Edgar). Lists what belongs in the framework convention vs what stays template-local. States the relationship to #0: "this is #0 applied to BRAND & CONTENT specifically."
+
+**Enforcement** — `dist/CLAUDE.md` gained a new bullet linking to #28; convention count updated 28 → 29.
+
+**Drift back-port** — when promoting, found the deployed framework (`Development4/templates/archetype/`) was AHEAD of the factory dist for #28 and the related scaffolding sections. The original write happened downstream first by mistake. Reversed: factory dist updated → planning catalog updated → CHANGELOG (this entry) → deployed framework re-synced from factory → downstream projects (Edgar) re-pulled. Process violation logged so the next agent reads "factory first" from the example, not just the rule.
+
+**Promoted from downstream** (consistent with Rule "downstream projects feed the factory"):
+- Convention #28 itself (this entry)
+- SCAFFOLD-FRONTEND.md Step 1b "Global Site Config" — was already in factory dist but had drifted out of the deployed framework; reconciled both directions during this Step
+
+Verify: `diff -rq dist/conventions/ ~/Development4/templates/archetype/conventions/` returns empty (modulo .git). `diff dist/CLAUDE.md ~/Development4/templates/archetype/CLAUDE.md` returns empty. Edgar's `archetype/conventions/28-config-driven-content.md` exists and matches.
+
 ## 2026-04-28 (Step 59) — Prod-ready template build-out: customer-site-template ships approve-able as-is; Edgar reaches feature parity
 
 Trigger: user direction "what I want is a prod-ready template where we can make customization based on the customers input … should have something proper to represent. and it should be prod ready that even if they approved I'd just keep as is. meaning should have developed it based on all the rules and conventions." Step 58 had given us the forkable artifact (`apps/customer-site-template/`); Step 59 fills it with content, security, and polish so a customer who fork-and-deploys without a single content edit gets a defensible site.
