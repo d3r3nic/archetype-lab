@@ -1,5 +1,7 @@
 # Framework Development Plan
 
+Current addition: [Step 61: shared task and freshness rulebook](STEP-61-TASK-RULEBOOK.md). Existing decisions remain historical; this step adds managed entry points and a project-local task binding to the current framework.
+
 ## Origin
 
 Started 2026-03-29 with a request to review 5 existing CLAUDE.md files across two project ecosystems and cross-reference with industry research on what actually works in AI-assisted development.
@@ -670,3 +672,7 @@ Framework is production-ready with active refinement.
 - CLAUDE.md: 44 lines with lazy loading, workflow gate, session memory, bootstrap gate, scope expansion
 - Conventions.md: 66 lines with lookup index and task-to-convention mapping
 - Next: version strategy, update mechanism, backend migration, promotion documentation
+
+### Step 61: Shared task and freshness rulebook
+
+An existing project onboarding needs one central task lifecycle and a clear platform binding, with project facts outside the framework. Adopt the design and acceptance criteria in [STEP-61-TASK-RULEBOOK.md](STEP-61-TASK-RULEBOOK.md). General task rules and freshness behavior live in routed development protocols; repository adoption rules live in bootstrap. No new numbered convention is introduced. Factory design precedes framework release and downstream installation.

@@ -2,6 +2,10 @@
 
 Every improvement to the Archetype framework, why it was made, and what triggered it.
 
+## 2026-09-10 (Step 61) — Shared task and freshness rulebook
+
+Trigger: an existing project needs centrally maintained task behavior and a project-local platform binding. Design recorded in [STEP-61-TASK-RULEBOOK.md](STEP-61-TASK-RULEBOOK.md); publication and validation are pending. The existing installer copies CLAUDE.md but has no managed AGENTS.md path. Preserve local guidance while adding that entry point. Keep generic rules public and private project mappings downstream. No runtime freshness guarantee is implied by instruction files.
+
 ## 2026-05-14 (Step 60) — Convention #28 Config-Driven Brand & Content promoted from headless-wp-next battle test
 
 Trigger: while making the headless-wp-next template forkable (downstream of Step 59), every customer-facing string had to be moved from `.tsx` into a config blob. The pattern was already being followed by reflex but wasn't codified — and a real bug surfaced when Edgar was migrated: Edgar had been silently relying on TEMPLATE DEFAULTS to render its architecture-studio content. When those defaults were neutralized in the template, Edgar's content would have gone blank. That's a Convention violation that only an explicit rule prevents.

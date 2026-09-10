@@ -1,5 +1,9 @@
 # Framework Architecture
 
+## Task and freshness extension (Step 61)
+
+Global task behavior and source-freshness rules live in routed development protocols. A project-owned task-context binding identifies its canonical tracker, local scope, and real platform capabilities. The enforcer loads the relevant protocols; it does not embed private project configuration. Managed entry points are distributed by the existing installer/updater, with original guidance preserved. The runtime must enforce version and authorization preconditions; prompt text alone is not enforcement. Design and acceptance: [STEP-61-TASK-RULEBOOK.md](STEP-61-TASK-RULEBOOK.md).
+
 ## What This Is
 
 A layered knowledge system for AI-assisted development. It produces the right rules, conventions, project scaffolding, and ongoing documentation for any project, any language, any AI assistant.
