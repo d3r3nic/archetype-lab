@@ -160,7 +160,7 @@ New AI agents read this first to understand the project's architecture. Hooks re
 
 ## Hooks
 
-Hooks enforce rules deterministically (100% compliance). CLAUDE.md rules are advisory (~80% compliance). Critical rules should be hooks, not just CLAUDE.md lines.
+Hooks can enforce covered patterns only when configured and invoked by the host. The current post-task hook is advisory (exit 0); no compliance percentage is established. Critical task, permission, and freshness controls require executable checks at the service boundary, with failure-case evidence. Instructions and hook presence alone are not proof of enforcement.
 
 - PostToolUse (Write/Edit): remind to update feature docs and feature-tree.md
 - PostToolUse (TaskComplete): remind to run verification

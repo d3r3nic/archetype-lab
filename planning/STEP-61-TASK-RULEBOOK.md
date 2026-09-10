@@ -21,4 +21,9 @@ Plan: publish this factory decision first; implement and verify the generic prot
 
 Acceptance: source self-test; installed self-test; existing entry-point backup; repeat injection refuses before mutation; update propagates managed guidance while preserving local files; unmanaged entry-point update fails safely. Review the protocol against duplicate tasks, canceled work, stale authorization, expired observations, uncertain external results, and unavailable platform access.
 
-Status: planned; implementation and validation evidence will be recorded in the factory changelog. No private project names, repository mappings, or credentials belong in this public record.
+Status: generic implementation prepared in isolation; publication awaits independent re-review of installer fixes. Fourteen regressions pass locally, including the previous-release injected upgrade. Source validation passes with zero warnings after completing the existing configuration-convention research note. No private project names, repository mappings, or credentials belong in this public record.
+
+
+Review findings and scope additions: validate full-clone/injected project roots before update; reject symlinks and backup collisions before installation writes; reject subfolder escapes; preserve and load original agent guidance; store migrated additions and context at project root; align migration-validator routing, including custom engine names; test missing task-protocol targets; document the legacy updater's two-step transition. Hooks and migration length heuristics do not establish complete compliance or semantic preservation. Correct those claims in active guidance.
+
+Known separate work: immutable pinned releases and manifests, transaction-safe fleet rollout, behavioral evaluations across project types, verified host-hook installation, and runtime enforcement by consuming systems. Current scripts remain manual, copy-based updaters. Interrupted updates require recovery; they are not an atomic release installer. Historical factory notes retain their original dated claims; the dated assessment supersedes unsupported current enforcement claims.
