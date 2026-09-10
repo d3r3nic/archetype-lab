@@ -3,8 +3,8 @@
 ## Step 61: Shared task and freshness rulebook
 
 - [x] Record central task/source/freshness contract and ownership in [STEP-61-TASK-RULEBOOK.md](STEP-61-TASK-RULEBOOK.md).
-- [ ] Publish generic protocols and managed entry-point distribution after verification and independent review.
-- [ ] Verify downstream adoption preserves local guidance and records platform capabilities honestly.
+- [x] Publish generic protocols and managed entry-point distribution after verification and independent review (product 326a030; 14 regressions).
+- [x] Verify downstream adoption preserves local guidance and records platform capabilities honestly (source-byte comparison and project-owned context binding).
 
 The checkboxes below retain their historical phase status.
 
