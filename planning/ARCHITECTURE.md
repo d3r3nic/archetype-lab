@@ -1,5 +1,9 @@
 # Framework Architecture
 
+## Task and freshness extension (Step 61)
+
+Global task behavior and source-freshness rules live in routed development protocols. A project-owned task-context binding identifies its canonical tracker, local scope, and real platform capabilities. The enforcer loads the relevant protocols; it does not embed private project configuration. Managed entry points are distributed by the existing installer/updater, with original guidance preserved. The runtime must enforce version and authorization preconditions; prompt text alone is not enforcement. Design and acceptance: [STEP-61-TASK-RULEBOOK.md](STEP-61-TASK-RULEBOOK.md).
+
 ## What This Is
 
 A layered knowledge system for AI-assisted development. It produces the right rules, conventions, project scaffolding, and ongoing documentation for any project, any language, any AI assistant.
@@ -156,7 +160,7 @@ New AI agents read this first to understand the project's architecture. Hooks re
 
 ## Hooks
 
-Hooks enforce rules deterministically (100% compliance). CLAUDE.md rules are advisory (~80% compliance). Critical rules should be hooks, not just CLAUDE.md lines.
+Hooks can enforce covered patterns only when configured and invoked by the host. The current post-task hook is advisory (exit 0); no compliance percentage is established. Critical task, permission, and freshness controls require executable checks at the service boundary, with failure-case evidence. Instructions and hook presence alone are not proof of enforcement.
 
 - PostToolUse (Write/Edit): remind to update feature docs and feature-tree.md
 - PostToolUse (TaskComplete): remind to run verification

@@ -1,5 +1,13 @@
 # Development Roadmap
 
+## Step 61: Shared task and freshness rulebook
+
+- [x] Record central task/source/freshness contract and ownership in [STEP-61-TASK-RULEBOOK.md](STEP-61-TASK-RULEBOOK.md).
+- [ ] Publish generic protocols and managed entry-point distribution after verification and independent review.
+- [ ] Verify downstream adoption preserves local guidance and records platform capabilities honestly.
+
+The checkboxes below retain their historical phase status.
+
 ## Phase 1: Foundation (complete)
 - [x] Define layer architecture
 - [x] Create project scaffolding
