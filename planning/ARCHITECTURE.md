@@ -1,5 +1,9 @@
 # Framework Architecture
 
+## Timeless conventions (Step 62)
+
+The framework encodes character; project artifacts hold specifics. In dist/ that is now a checked invariant: outside a section titled "Research Notes", conventions, enforcers, index files, the README, and file templates name no product, library, service, or vendor, cite no factory step, attach no statistic to a claim about AI, fix no line-count or minute cadence, and carry no changelog language. Research Notes sections open with a dated notice. scripts/validate-timeless.sh enforces this from a category-tagged term list and a justified allowlist, and validate-framework.sh fails when it finds anything. Numbers that used to stand in for principles are project-set dials recorded in References.md. Conventions that apply to some project shapes only say so in an "Applies when" section. Design and evidence: [STEP-62-TIMELESS-CONVENTIONS.md](STEP-62-TIMELESS-CONVENTIONS.md).
+
 ## Task and freshness extension (Step 61)
 
 Global task behavior and source-freshness rules live in routed development protocols. A project-owned task-context binding identifies its canonical tracker, local scope, and real platform capabilities. The enforcer loads the relevant protocols; it does not embed private project configuration. Managed entry points are distributed by the existing installer/updater, with original guidance preserved. The runtime must enforce version and authorization preconditions; prompt text alone is not enforcement. Design and acceptance: [STEP-61-TASK-RULEBOOK.md](STEP-61-TASK-RULEBOOK.md).
@@ -64,8 +68,9 @@ Layer 2: conventions/*.md (THE CONVENTION DOCS)
     - REUSABLE SYSTEM: what foundational system this convention produces
     - RULES: direct rules to follow
     - VIOLATIONS: what wrong looks like (so AI can self-check)
-    - RIGHT vs WRONG: concrete examples labeled with framework (illustrative)
-  - Examples may use a specific framework for clarity but are labeled as such
+    - RIGHT vs WRONG: concrete examples, stack-neutral (illustrative)
+    - RESEARCH NOTES: the only section that may name a tool, opened by a dated notice
+  - Examples name categories and concerns, never a specific tool (checked by validate-timeless.sh)
   - The actual implementation for a specific project lives in References.md
 
 Layer 3: References.md (PER-PROJECT CONTEXT)

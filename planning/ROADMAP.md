@@ -1,5 +1,12 @@
 # Development Roadmap
 
+## Step 62: Timeless conventions, enforced
+
+- [x] Record the rule, the three staleness classes, the allowed zone, the allowlist policy, and the per-file remediation record in [STEP-62-TIMELESS-CONVENTIONS.md](STEP-62-TIMELESS-CONVENTIONS.md).
+- [x] Ship scripts/validate-timeless.sh inside validate-framework.sh; prove it fails on planted violations in every class and passes on the remediated dist (verified locally 2026-09-11).
+- [ ] Independent adversarial audit, then publish dist to the product repository and record the product revision here.
+- [ ] Follow-up steps: bring phase playbooks into the validator's scope; propose a shape-agnostic core with expirable profiles.
+
 ## Step 61: Shared task and freshness rulebook
 
 - [x] Record central task/source/freshness contract and ownership in [STEP-61-TASK-RULEBOOK.md](STEP-61-TASK-RULEBOOK.md).
