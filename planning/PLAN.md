@@ -1,6 +1,6 @@
 # Framework Development Plan
 
-Current addition: [Step 61: shared task and freshness rulebook](STEP-61-TASK-RULEBOOK.md). Existing decisions remain historical; this step adds managed entry points and a project-local task binding to the current framework.
+Current addition: [Step 62: timeless conventions, enforced](STEP-62-TIMELESS-CONVENTIONS.md). Previous addition: [Step 61: shared task and freshness rulebook](STEP-61-TASK-RULEBOOK.md). Existing decisions remain historical; Step 62 turns the framework-encodes-character rule into a validator and remediates the published product against it.
 
 ## Origin
 
@@ -676,3 +676,7 @@ Framework is production-ready with active refinement.
 ### Step 61: Shared task and freshness rulebook
 
 An existing project onboarding needs one central task lifecycle and a clear platform binding, with project facts outside the framework. Adopt the design and acceptance criteria in [STEP-61-TASK-RULEBOOK.md](STEP-61-TASK-RULEBOOK.md). General task rules and freshness behavior live in routed development protocols; repository adoption rules live in bootstrap. No new numbered convention is introduced. Factory design precedes framework release and downstream installation.
+
+### Step 62: Timeless conventions, enforced
+
+A downstream bootstrap showed the product still naming tools as the answer, leaking factory changelog language, and stating era-bound numbers as rules. Decision: rule 5b becomes a gate. A validator with a maintained term list and a justified allowlist fails the framework self-test on expirable content outside "Research Notes"; every Research Notes section carries a dated notice; era-bound numbers become project-set dials recorded in References.md; #22 prefers an established foundation but lets a project rule otherwise on record; #26 and #28 say when they apply so a project can mark them not applicable without violating anything. Backend conventions and the README were included because the same rule applies to them. Phase playbooks stay out of the validator's default scope until remediated; a shape-agnostic core with expirable profiles is proposed as a later step. Design, evidence, and the per-file record: [STEP-62-TIMELESS-CONVENTIONS.md](STEP-62-TIMELESS-CONVENTIONS.md).

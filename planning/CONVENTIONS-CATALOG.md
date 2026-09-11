@@ -4,6 +4,8 @@
 
 Sources: [A] User's existing CLAUDE.md files | [B] Traditional research (500+) | [C] AI-first research | [D] System prompt (excluded)
 
+Timeless rule (Step 62): tool and vendor names in this catalog are factory-side source notes recording where a convention came from. The published convention docs carry none outside their Research Notes; scripts/validate-timeless.sh in dist/ enforces that. See [STEP-62-TIMELESS-CONVENTIONS.md](STEP-62-TIMELESS-CONVENTIONS.md).
+
 ---
 
 ## #0 REUSABILITY & COMPOSITION (META-CONVENTION)
@@ -433,18 +435,19 @@ Reusable system produced: route guard component, layout components, URL state ut
 
 How a shared component library is built and maintained.
 
-Sources: [A] medium (MUI wrappers) | [B] strong
+Sources: [A] medium (UI-library wrappers in the user's existing rule sets) | [B] strong | [D] timeless audit (Step 62: "never build standard UI from scratch" was classed as era-bound taste; the rule gained an on-record exception path)
 
 Includes:
+- Prefer an established component foundation when one fits the product; a project may rule otherwise and records the decision and reason in References.md (Step 62 wording)
 - Single source of truth component library
 - Token-first design (tokens before components)
-- UI library wrappers (never import directly from MUI/Chakra)
-- Storybook as canonical catalog
+- Wrappers around the foundation (features never import the library directly)
+- A component catalog as the canonical inventory
 - Versioned releases with changelogs
 - Deprecation policy
 - Visual regression testing on PRs
 
-Reusable system produced: UI wrapper library, Storybook setup, visual testing config.
+Reusable system produced: wrapper library, component catalog, visual testing config.
 
 ### #28 CONFIG-DRIVEN BRAND & CONTENT
 
@@ -469,6 +472,8 @@ Specifics that DO NOT belong in the framework convention (template-local per Rul
 Reusable system produced: schema package + resolver + getter; config doc; defaults that render a neutral demo.
 
 Relationship to #0: this is #0 (reusability) applied to BRAND & CONTENT specifically. Where #0 says "build it once, configure for context," #28 says "configure it from JSON, never from code."
+
+Applies when (Step 62): the project is a template serving many customers or brands, or a white-label product whose brand and content must change without code edits. Other projects mark #28 not applicable in feature-tree.md; #1 and #6 still forbid hardcoding.
 
 ---
 
