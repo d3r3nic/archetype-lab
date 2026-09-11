@@ -5,7 +5,8 @@
 - [x] Record the rule, the three staleness classes, the allowed zone, the allowlist policy, and the per-file remediation record in [STEP-62-TIMELESS-CONVENTIONS.md](STEP-62-TIMELESS-CONVENTIONS.md).
 - [x] Ship scripts/validate-timeless.sh inside validate-framework.sh; prove it fails on planted violations in every class and passes on the remediated dist (verified locally 2026-09-11).
 - [x] Independent adversarial audit (FIX-FIRST, two fix commits, then APPROVE), then publish dist to the product repository (archetype PR #2, revision 5c305ef590cc2787b9c3aaa81a2c7b6aff1e0d67).
-- [ ] Follow-up steps: bring phase playbooks into the validator's scope; propose a shape-agnostic core with expirable profiles.
+- [x] Downstream adoption observed: game repository at 42592a7 on 5c305ef, installed self-test passing (reported by the game session, checked read-only).
+- [ ] Follow-up steps: bring phase playbooks into the validator's scope; propose a shape-agnostic core with expirable profiles; make update.sh skip a no-op VERSION-LOG entry and drop the placeholder line (regression in test-entrypoints.py).
 
 ## Step 61: Shared task and freshness rulebook
 
