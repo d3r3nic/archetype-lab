@@ -1,34 +1,32 @@
-# AI Development Framework
+# AI Development Framework (Archetype factory)
 
 A layered knowledge system for AI-assisted software development.
 Makes any AI coding assistant follow a consistent engineering philosophy across any language, framework, or project.
+
+This repository is the factory: where framework changes are designed, recorded, and verified before they are published. The published framework lives in its own repository (github.com/d3r3nic/archetype) and is checked out here under `dist/`, which this repository ignores.
 
 ## Structure
 
 ```
 ai-dev-framework/
-├── planning/                          # Framework design (the blueprint)
-│   ├── ARCHITECTURE.md                # Layer system design
-│   └── ROADMAP.md                     # Development phases and progress
-│
-├── research/                          # What informed the design
-│   ├── existing-rulesets/ANALYSIS.md  # Analysis of 5 existing CLAUDE.md files
-│   └── industry/audit-findings.md     # External research + system prompt analysis
-│
-├── dist/                              # THE USABLE FRAMEWORK (clean output)
-│   ├── CLAUDE.md                      # Layer 0: The enforcer
-│   ├── Conventions.md                 # Layer 1: The DNA catalog
-│   ├── conventions/                   # Layer 2: Individual convention docs
-│   ├── References.md                  # Layer 3: Template (filled per project)
-│   └── templates/                     # Starter templates for backend/frontend/mobile
-│
-└── README.md
+├── CLAUDE.md                          # Rules for working ON the framework
+├── planning/                          # Source of truth for every decision
+│   ├── PLAN.md                        # Discussion history, decisions, reasoning
+│   ├── ARCHITECTURE.md                # Layer system and phase model
+│   ├── ROADMAP.md                     # Phases, steps, progress
+│   ├── CHANGELOG.md                   # Every step with date, trigger, changes
+│   ├── CONVENTIONS-CATALOG.md         # The convention catalog with sources
+│   ├── BACKEND-AUDIT.md               # Backend convention research audit
+│   └── STEP-*.md                      # Design and evidence records for recent steps
+├── research/                          # What informed the design (dated, not remediated)
+│   ├── existing-rulesets/             # Analysis of the founder's earlier rule sets
+│   ├── industry/                      # External research and system-prompt audit
+│   └── timeless-candidates-*.md       # Agent sweeps for further work
+└── dist/                              # The published framework (separate repository)
 ```
 
-planning/ = source code of the framework
-dist/ = build output - what gets deployed into real projects
+planning/ = source code of the framework. dist/ = build output, published to real projects.
 
-## Status
+## Process
 
-Phase 1: Foundation (in progress)
-See planning/ROADMAP.md for full status.
+Design first in planning/ (a numbered step), then change dist/, then verify (`bash scripts/validate-framework.sh` and `python3 scripts/test-entrypoints.py` inside dist/), then an independent audit, then publish dist/ to the product repository, then record the published revision back here. See CLAUDE.md for the rules and planning/ROADMAP.md for status.

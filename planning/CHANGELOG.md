@@ -2,6 +2,14 @@
 
 Every improvement to the Archetype framework, why it was made, and what triggered it.
 
+## 2026-09-11 (Step 63) — The framework tells the truth about itself; playbooks under the timeless gate
+
+Trigger: Step 62's follow-up on the phase playbooks, plus the candidate sweep's one hand-verified finding: six stale counts of the framework's own parts, defenses naming validator checks that do not exist, and engine paths pointing at files that are not shipped. Design, remediation record, and proof in [STEP-63-SELF-HONEST-PLAYBOOKS.md](STEP-63-SELF-HONEST-PLAYBOOKS.md).
+
+Changes in dist/: new scripts/validate-claims.sh (validate-framework.sh group 11) fails on miscounted parts, any count of a red-flag catalogue, stale id ranges, dangling engine paths, and unresolved #N or BN references; validate-timeless.sh scans every shipped markdown file, accepts a "Dated example:" line as a per-line allowed zone, and treats a playbook's own steps as legal while still failing factory step references; bootstrap/, scaffolding/, development/, and META-BATTLE-TESTING.md remediated (205 timeless and 12 self-claim findings to 0, measured with the final checks on 5c305ef); backend/CLAUDE.md routes to B3 and B7; conventions/25 carries its number; validate-scaffold.sh's header matches its groups. Factory README rewritten to describe the factory as it is.
+
+Method: validators and fixes by the factory session; playbooks remediated by three Opus agents in parallel, one per directory, every diff line reviewed by the factory session before commit. Verified locally: timeless and self-claims checks clean, validate-framework.sh 0 errors and 0 warnings, 14 distribution regressions OK with the 46ebfa4 legacy export. Independent audit, product publication, and downstream adoption are recorded in the evidence update once observed.
+
 ## 2026-09-11 (Step 62) — Timeless conventions, enforced
 
 Trigger: a downstream text-game bootstrap against product 326a030 found that the published conventions still name tools and vendors as the answer, carry factory changelog language, and state era-bound numbers as law; factory rule 5b was unenforced. Design, staleness classes, allowlist policy, per-file remediation record, and validator proof are in [STEP-62-TIMELESS-CONVENTIONS.md](STEP-62-TIMELESS-CONVENTIONS.md).

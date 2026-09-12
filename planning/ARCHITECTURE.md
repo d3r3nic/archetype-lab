@@ -1,5 +1,9 @@
 # Framework Architecture
 
+## Self-honest framework and playbooks under the gate (Step 63)
+
+Two additions to the invariant above. First, the shipped documents must tell the truth about the framework itself: every count of its parts, every path into the engine, and every convention reference is checked against the tree by scripts/validate-claims.sh (validate-framework.sh group 11); counts of red-flag catalogues are forbidden outright because they change with every addition. Second, the timeless gate covers every shipped markdown file, including the phase playbooks and the meta document, with one more allowed zone: a line beginning "Dated example:" keeps a concrete case next to its rule and marks it expirable, while a playbook's own numbered steps stay legal. Design and evidence: [STEP-63-SELF-HONEST-PLAYBOOKS.md](STEP-63-SELF-HONEST-PLAYBOOKS.md).
+
 ## Timeless conventions (Step 62)
 
 The framework encodes character; project artifacts hold specifics. In dist/ that is now a checked invariant: outside a section titled "Research Notes", conventions, enforcers, index files, the README, and file templates name no product, library, service, or vendor, cite no factory step, attach no statistic to a claim about AI, fix no line-count or minute cadence, and carry no changelog language. Research Notes sections open with a dated notice. scripts/validate-timeless.sh enforces this from a category-tagged term list and a justified allowlist, and validate-framework.sh fails when it finds anything. Numbers that used to stand in for principles are project-set dials recorded in References.md. Conventions that apply to some project shapes only say so in an "Applies when" section. Design and evidence: [STEP-62-TIMELESS-CONVENTIONS.md](STEP-62-TIMELESS-CONVENTIONS.md).

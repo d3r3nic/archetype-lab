@@ -1,6 +1,6 @@
 # Framework Development Plan
 
-Current addition: [Step 62: timeless conventions, enforced](STEP-62-TIMELESS-CONVENTIONS.md). Previous addition: [Step 61: shared task and freshness rulebook](STEP-61-TASK-RULEBOOK.md). Existing decisions remain historical; Step 62 turns the framework-encodes-character rule into a validator and remediates the published product against it.
+Current addition: [Step 63: the framework tells the truth about itself; playbooks under the timeless gate](STEP-63-SELF-HONEST-PLAYBOOKS.md). Previous additions: [Step 62: timeless conventions, enforced](STEP-62-TIMELESS-CONVENTIONS.md), [Step 61: shared task and freshness rulebook](STEP-61-TASK-RULEBOOK.md). Existing decisions remain historical; Step 62 turns the framework-encodes-character rule into a validator and remediates the published product against it.
 
 ## Origin
 
@@ -680,3 +680,7 @@ An existing project onboarding needs one central task lifecycle and a clear plat
 ### Step 62: Timeless conventions, enforced
 
 A downstream bootstrap showed the product still naming tools as the answer, leaking factory changelog language, and stating era-bound numbers as rules. Decision: rule 5b becomes a gate. A validator with a maintained term list and a justified allowlist fails the framework self-test on expirable content outside "Research Notes"; every Research Notes section carries a dated notice; era-bound numbers become project-set dials recorded in References.md; #22 prefers an established foundation but lets a project rule otherwise on record; #26 and #28 say when they apply so a project can mark them not applicable without violating anything. Backend conventions and the README were included because the same rule applies to them. Phase playbooks stay out of the validator's default scope until remediated; a shape-agnostic core with expirable profiles is proposed as a later step. Design, evidence, and the per-file record: [STEP-62-TIMELESS-CONVENTIONS.md](STEP-62-TIMELESS-CONVENTIONS.md).
+
+### Step 63: The framework tells the truth about itself; playbooks under the timeless gate
+
+The candidate sweep after Step 62 (research/timeless-candidates-2026-09-11.md) produced one finding the factory session verified by hand: the framework miscounted its own parts in six places and named checks that do not exist. Decision: the shipped documents' claims about the framework become a checked invariant (counts, engine paths, convention references), red-flag catalogues are named and never counted, and the timeless gate extends to the phase playbooks with a per-line "Dated example:" zone so procedure can keep one concrete case next to each rule. Playbooks were remediated by three Opus agents in parallel under the final validators and reviewed line by line. Design, record, and proof: [STEP-63-SELF-HONEST-PLAYBOOKS.md](STEP-63-SELF-HONEST-PLAYBOOKS.md).
