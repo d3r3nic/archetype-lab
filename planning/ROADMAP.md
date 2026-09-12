@@ -5,6 +5,7 @@
 - [x] Record the self-claims rule, the wider gate, the per-line dated zone, and the per-file remediation record in [STEP-63-SELF-HONEST-PLAYBOOKS.md](STEP-63-SELF-HONEST-PLAYBOOKS.md).
 - [x] Ship scripts/validate-claims.sh (group 11) and the widened validate-timeless.sh; prove both on planted violations; remediate bootstrap/, scaffolding/, development/, and the meta document to zero findings (verified locally 2026-09-11).
 - [x] Independent adversarial audit (FIX-FIRST, two fix commits, APPROVE), then publish dist to the product repository (archetype PR #3, revision 3e670a57118a9127f0e726b1cb6c5cd97a228120).
+- [x] Downstream adoption observed: game repository at 8a515fb on 3e670a5, installed self-test passing with groups 10 and 11 clean (reported by the game session, checked read-only).
 - [ ] Follow-ups: automated gate runs on the product repository; validate-develop.sh reads shared-client names from References.md; portable date handling in validate-maintain.sh; dated notice on factory research/.
 
 ## Step 62: Timeless conventions, enforced
