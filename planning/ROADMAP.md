@@ -1,5 +1,14 @@
 # Development Roadmap
 
+## Step 64: Decision authority and the operating profile
+
+- [x] Record the two findings (convention 19 contradicts the founder's operating rule; discovery learns the rigor facts and discards them), the decisions, the file list, and the verification plan in [STEP-64-DECISION-AUTHORITY-AND-PROFILE.md](STEP-64-DECISION-AUTHORITY-AND-PROFILE.md) (designed 2026-09-12, informed by research/astra-2026-09-12/).
+- [ ] Ship conventions #29 and #30, the reconciled convention 19 and enforcer, templates/profile.md, the debt template fields, the bootstrap questions and generation, scripts/validate-profile.sh with scripts/test-profile.py; prove every rule on planted violations.
+- [ ] Independent audit by two reviewers that did not write the change (Codex review mode and an Opus agent), then publish dist to the product repository.
+- [ ] Record downstream adoption when the game session reports it.
+
+Planned after Step 64, each with its design input in research/astra-2026-09-12/ and triggered by Step 64's publication: Step 65 decisions, research protocol, correction capture, factory intake; Step 66 AI economy and starters; Step 67 the unattended window; Step 68 proof of gate, cost ledger, exit paths, license.
+
 ## Step 63: The framework tells the truth about itself; playbooks under the timeless gate
 
 - [x] Record the self-claims rule, the wider gate, the per-line dated zone, and the per-file remediation record in [STEP-63-SELF-HONEST-PLAYBOOKS.md](STEP-63-SELF-HONEST-PLAYBOOKS.md).
