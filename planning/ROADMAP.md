@@ -1,5 +1,12 @@
 # Development Roadmap
 
+## Step 63: The framework tells the truth about itself; playbooks under the timeless gate
+
+- [x] Record the self-claims rule, the wider gate, the per-line dated zone, and the per-file remediation record in [STEP-63-SELF-HONEST-PLAYBOOKS.md](STEP-63-SELF-HONEST-PLAYBOOKS.md).
+- [x] Ship scripts/validate-claims.sh (group 11) and the widened validate-timeless.sh; prove both on planted violations; remediate bootstrap/, scaffolding/, development/, and the meta document to zero findings (verified locally 2026-09-11).
+- [ ] Independent adversarial audit, then publish dist to the product repository and record the product revision here.
+- [ ] Follow-ups: automated gate runs on the product repository; validate-develop.sh reads shared-client names from References.md; portable date handling in validate-maintain.sh; dated notice on factory research/.
+
 ## Step 62: Timeless conventions, enforced
 
 - [x] Record the rule, the three staleness classes, the allowed zone, the allowlist policy, and the per-file remediation record in [STEP-62-TIMELESS-CONVENTIONS.md](STEP-62-TIMELESS-CONVENTIONS.md).
