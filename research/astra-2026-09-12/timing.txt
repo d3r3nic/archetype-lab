@@ -1,0 +1,5 @@
+R1 started 16:32 finished 16:40 emdashes=0
+R2 started 16:32 finished 16:40 emdashes=0
+R3 started 16:32 finished 16:37 emdashes=0
+R4 started 16:32 finished 16:38 emdashes=0
+R5 started 16:32 finished 16:39 emdashes=0
