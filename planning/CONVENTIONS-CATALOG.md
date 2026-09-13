@@ -475,6 +475,36 @@ Relationship to #0: this is #0 (reusability) applied to BRAND & CONTENT specific
 
 Applies when (Step 62): the project is a template serving many customers or brands, or a white-label product whose brand and content must change without code edits. Other projects mark #28 not applicable in feature-tree.md; #1 and #6 still forbid hardcoding.
 
+### #29 DECISION AUTHORITY & ESCALATION
+
+Who decides technical questions, how the owner is asked, and what the AI never does alone.
+
+Sources: [A] founder engineering constitution (2026-08-01, binding on every session) | [E] Astra research 2026-09-12 (notes R3, R4, R5 each flagged convention 19's approval rules as contradicting the constitution) | factory Step 64
+
+Includes:
+- Declared setting per project: owner-decides or ai-decides; default ai-decides with the decision recorded when the owner's answer is vague
+- Escalation limited to four categories under either setting: new recurring spend, external commitments, actions on a live customer environment, a change to what the product is; always one plain recommendation, never a menu
+- No unverified claims; done means right (no lowered gates, placeholders, or skipped tests); independent audit before merge
+- Owner-facing safety rails in plain words; silence is not authorization
+- Every technical decision recorded with its reason in the project's decision location
+
+Relationship to #19: #19 keeps the discipline (specification, plan, one change at a time, no adjacent refactors); its five authority-dependent rules read the #29 setting.
+
+### #30 OPERATING PROFILE & DEFERRAL
+
+How careful the project must be, derived from facts, and when deferred work comes due.
+
+Sources: [E] Astra research 2026-09-12 (note R1: stage model, floor, trigger-linked deferrals, result vocabulary; the standards it cites cover control-baseline tailoring, secure development, reclassification practice, and readiness reviews) | factory Step 64
+
+Includes:
+- PROFILE.md at the project root with `- Key: value` bullets: stage (isolated, trial, operational), facts with explicit unknown, cost ceilings, decision authority, observed-on date, review condition
+- The floor no stage may defer: secrets and environment protection; trust-boundary validation and authorization; safe irreversible effects; responsible personal-data handling before collection; authorized reuse; honest completion and review
+- Deferrals in TECHNICAL-DEBT.md with Kind, Control, Due-before (named trigger or date), Review-by, Closure-evidence
+- Named triggers evaluated against the facts; a true trigger makes its deferrals blocking; relabeling does not clear it
+- scripts/validate-profile.sh with PASS, FAIL, WARN, DEFERRED, UNVERIFIED; absent profile read as operational with unknown facts
+
+Relationship to #0 and #18: the profile decides which obligations apply now and records what was deliberately deferred; verification (#18) never weakens to fit a stage.
+
 ---
 
 ## OPTIONAL ADDONS (included when project needs them)
