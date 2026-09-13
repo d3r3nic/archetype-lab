@@ -114,7 +114,7 @@ Final verdicts: Opus agent, APPROVE for merge on 0896693 (its twenty-eighth repo
 
 ## Status
 
-Published on 2026-09-12: product main 0e4b5f6a550ad163fbac33037734bf7f742ff335 (archetype PR #4, squash of the twenty-six commits of step-64-authority-profile). The installed self-test passes on main. Downstream adoption is not yet recorded; the game session adopts releases on its own schedule and reports back.
+Published on 2026-09-12: product main 0e4b5f6a550ad163fbac33037734bf7f742ff335 (archetype PR #4, squash of the twenty-six commits of step-64-authority-profile). The installed self-test passes on main. Downstream adoption, 2026-09-12: the game repository (hybrid-game-v2, master) adopted 0e4b5f6 with one run of the installed update.sh (26 managed files, one VERSION-LOG entry), wrote PROFILE.md from the template (operating stage isolated; decision authority ai-decides, source owner-stated from the founder's engineering constitution; owner-only, synthetic-disposable, no external effects, review at first-outside-participant) and a Decisions and Owner Channel section in References.md per #29, merged as its PR #3, commit dad28cc. Checked read-only by the factory session: VERSION-LOG mentions 0e4b5f6 once; validate-profile.sh in strict mode Deferred 0, Unverified 0, Warnings 0, Errors 0; installed validate-framework.sh 0 errors, 0 warnings. The first project with a declared profile.
 
 ## Follow-up proposals (not done in this step)
 
